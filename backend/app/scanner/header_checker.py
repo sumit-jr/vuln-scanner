@@ -6,7 +6,18 @@ def is_valid_url(url):
     parsed = urlparse(url)
     return all([parsed.scheme, parsed.netloc])
 
+
+def analyze_header(header_value, risk, recommendation):
+    return {
+        "value": header_value,
+        "status": "Present" if header_value else "Missing",
+        "risk": "Low" if header_value else risk,
+        "recommendation": None if header_value else recommendation
+    }
+
+
 def check_security_headers(url):
+
     if not is_valid_url(url):
         return {"error": "Invalid URL"}
 
@@ -16,37 +27,29 @@ def check_security_headers(url):
         headers = response.headers
 
         security_headers = {
-            "Content-Security-Policy": {
-                "value": headers.get("Content-Security-Policy"),
-                "status": "Present" if headers.get("Content-Security-Policy") else "Missing",
-                "risk": "High" if not headers.get("Content-Security-Policy") else "Low",
-                "recommendation": None if headers.get("Content-Security-Policy")
-                else "Add Content-Security-Policy header to prevent XSS attacks"
-            },
+            "Content-Security-Policy": analyze_header(
+                headers.get("Content-Security-Policy"),
+                "High",
+                "Add Content-Security-Policy header to prevent XSS attacks"
+            ),
 
-            "X-Frame-Options": {
-                "value": headers.get("X-Frame-Options"),
-                "status": "Present" if headers.get("X-Frame-Options") else "Missing",
-                "risk": "Medium" if not headers.get("X-Frame-Options") else "Low",
-                "recommendation": None if headers.get("X-Frame-Options")
-                else "Add X-Frame-Options header to prevent clickjacking"
-            },
+            "X-Frame-Options": analyze_header(
+                headers.get("X-Frame-Options"),
+                "Medium",
+                "Add X-Frame-Options header to prevent clickjacking"
+            ),
 
-            "Strict-Transport-Security": {
-                "value": headers.get("Strict-Transport-Security"),
-                "status": "Present" if headers.get("Strict-Transport-Security") else "Missing",
-                "risk": "High" if not headers.get("Strict-Transport-Security") else "Low",
-                "recommendation": None if headers.get("Strict-Transport-Security")
-                else "Enable HSTS to enforce HTTPS connections"
-            },
+            "Strict-Transport-Security": analyze_header(
+                headers.get("Strict-Transport-Security"),
+                "High",
+                "Enable HSTS to enforce HTTPS connections"
+            ),
 
-            "X-Content-Type-Options": {
-                "value": headers.get("X-Content-Type-Options"),
-                "status": "Present" if headers.get("X-Content-Type-Options") else "Missing",
-                "risk": "Medium" if not headers.get("X-Content-Type-Options") else "Low",
-                "recommendation": None if headers.get("X-Content-Type-Options")
-                else "Add X-Content-Type-Options header to prevent MIME-type sniffing"
-            }
+            "X-Content-Type-Options": analyze_header(
+                headers.get("X-Content-Type-Options"),
+                "Medium",
+                "Add X-Content-Type-Options header to prevent MIME-type sniffing"
+            )
         }
 
         return security_headers
