@@ -52,7 +52,18 @@ def check_security_headers(url):
             )
         }
 
-        return security_headers
+        missing_headers = sum(
+            1 for header in security_headers.values()
+            if header["status"] == "Missing"
+        )
+
+        return {
+            "summary": {
+                "total_headers_checked": len(security_headers),
+                "missing_headers": missing_headers
+            },
+            "details": security_headers
+        }
 
     except requests.exceptions.RequestException:
         return {"error": "Unable to access the website"}
