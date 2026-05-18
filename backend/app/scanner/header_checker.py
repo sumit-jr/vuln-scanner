@@ -8,11 +8,30 @@ def check_security_headers(url):
         headers = response.headers
 
         security_headers = {
-            "Content-Security-Policy": headers.get("Content-Security-Policy"),
-            "X-Frame-Options": headers.get("X-Frame-Options"),
-            "Strict-Transport-Security": headers.get("Strict-Transport-Security"),
-            "X-Content-Type-Options": headers.get("X-Content-Type-Options"),
-        }
+    "Content-Security-Policy": {
+        "value": headers.get("Content-Security-Policy"),
+        "status": "Present" if headers.get("Content-Security-Policy") else "Missing",
+        "risk": "High" if not headers.get("Content-Security-Policy") else "Low"
+    },
+
+    "X-Frame-Options": {
+        "value": headers.get("X-Frame-Options"),
+        "status": "Present" if headers.get("X-Frame-Options") else "Missing",
+        "risk": "Medium" if not headers.get("X-Frame-Options") else "Low"
+    },
+
+    "Strict-Transport-Security": {
+        "value": headers.get("Strict-Transport-Security"),
+        "status": "Present" if headers.get("Strict-Transport-Security") else "Missing",
+        "risk": "High" if not headers.get("Strict-Transport-Security") else "Low"
+    },
+
+    "X-Content-Type-Options": {
+        "value": headers.get("X-Content-Type-Options"),
+        "status": "Present" if headers.get("X-Content-Type-Options") else "Missing",
+        "risk": "Medium" if not headers.get("X-Content-Type-Options") else "Low"
+    }
+}
 
         return security_headers
 
