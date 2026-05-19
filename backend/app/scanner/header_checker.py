@@ -1,15 +1,15 @@
-from fileinput import filename
-
 import requests
 from urllib.parse import urlparse
 import logging
 import json
+
 
 logging.basicConfig(
     filename="logs/scanner.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
 
 def is_valid_url(url):
     parsed = urlparse(url)
@@ -31,13 +31,28 @@ def check_security_headers(url):
         return {"error": "Invalid URL"}
 
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(
+            url,
+            timeout=5,
+            allow_redirects=True,
+            headers={
+                "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0 Safari/537.36"
+            )
+    }
+)
 
         headers = response.headers
 
         logging.info(f"Scanning URL: {url}")
 
-        filename = url.replace("https://", "").replace("http://", "").replace("/", "_")
+        filename = (
+            url.replace("https://", "")
+            .replace("http://", "")
+            .replace("/", "_")
+        )
 
         security_headers = {
             "Content-Security-Policy": analyze_header(
@@ -84,12 +99,12 @@ def check_security_headers(url):
 
         report = {
             "summary": {
-            "total_headers_checked": len(security_headers),
-            "missing_headers": missing_headers,
-            "overall_risk": overall_risk
-        },
-        "details": security_headers
-}
+                "total_headers_checked": len(security_headers),
+                "missing_headers": missing_headers,
+                "overall_risk": overall_risk
+            },
+            "details": security_headers
+        }
 
         with open(f"reports/{filename}_report.json", "w") as file:
             json.dump(report, file, indent=4)

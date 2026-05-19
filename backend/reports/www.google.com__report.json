@@ -1,8 +1,8 @@
 {
     "summary": {
         "total_headers_checked": 4,
-        "missing_headers": 3,
-        "overall_risk": "High"
+        "missing_headers": 2,
+        "overall_risk": "Medium"
     },
     "details": {
         "Content-Security-Policy": {
@@ -18,10 +18,10 @@
             "recommendation": null
         },
         "Strict-Transport-Security": {
-            "value": null,
-            "status": "Missing",
-            "risk": "High",
-            "recommendation": "Enable HSTS to enforce HTTPS connections"
+            "value": "max-age=31536000",
+            "status": "Present",
+            "risk": "Low",
+            "recommendation": null
         },
         "X-Content-Type-Options": {
             "value": null,
