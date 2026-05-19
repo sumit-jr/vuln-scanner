@@ -57,10 +57,23 @@ def check_security_headers(url):
             if header["status"] == "Missing"
         )
 
+        high_risk_count = sum(
+            1 for header in security_headers.values()
+            if header["risk"] == "High"
+        )
+
+        if high_risk_count >= 2:
+            overall_risk = "High"
+        elif missing_headers >= 2:
+            overall_risk = "Medium"
+        else:
+            overall_risk = "Low"
+
         return {
             "summary": {
                 "total_headers_checked": len(security_headers),
-                "missing_headers": missing_headers
+                "missing_headers": missing_headers,
+                "overall_risk": overall_risk    
             },
             "details": security_headers
         }
