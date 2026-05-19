@@ -382,6 +382,9 @@ function App() {
                           <p className="text-green-500 mt-2 font-semibold">
                             {port.status}
                           </p>
+                          <p className="text-zinc-400 text-sm mt-4 break-all">
+                            {port.banner}
+                          </p>
 
                         </div>
 

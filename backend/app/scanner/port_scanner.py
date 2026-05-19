@@ -1,4 +1,5 @@
 import socket
+from app.scanner.banner_grabber import grab_banner
 
 
 COMMON_PORTS = {
@@ -33,11 +34,14 @@ def scan_ports(host):
             result = sock.connect_ex((host, port))
 
             if result == 0:
+                
+                banner = grab_banner(host, port)
 
                 open_ports.append({
                     "port": port,
                     "service": service,
-                    "status": "Open"
+                    "status": "Open",
+                    "banner": banner
                 })
 
             sock.close()
