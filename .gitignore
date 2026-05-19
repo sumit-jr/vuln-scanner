@@ -3,3 +3,8 @@ __pycache__/
 venv/
 *.pyc
 backend/.env
+
+*.log
+*.log
+backend/reports/
+frontend/node_modules/
