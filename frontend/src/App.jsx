@@ -63,6 +63,7 @@ function App() {
 
           <div className="flex items-center gap-3 mb-8">
             <History className="text-red-500" />
+
             <h2 className="text-2xl font-bold">
               Recent Scans
             </h2>
@@ -79,7 +80,8 @@ function App() {
             {history.map((item, index) => (
               <div
                 key={index}
-                className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-red-500 transition"
+                onClick={() => setResult(item.report)}
+                className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-red-500 transition cursor-pointer"
               >
                 <p className="font-semibold break-all">
                   {item.file_name.replace("_report.json", "")}
@@ -157,7 +159,27 @@ function App() {
               </div>
             )}
 
-            {result && (
+            {!result ? (
+
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
+
+                <Shield
+                  size={60}
+                  className="mx-auto text-zinc-600 mb-4"
+                />
+
+                <h2 className="text-2xl font-bold mb-2">
+                  No Scan Selected
+                </h2>
+
+                <p className="text-zinc-400">
+                  Start scanning a website to view security analysis
+                </p>
+
+              </div>
+
+            ) : (
+
               <div className="space-y-8">
 
                 {/* SUMMARY */}
