@@ -6,6 +6,7 @@ import {
   CheckCircle,
   Search,
   History,
+  Network,
 } from "lucide-react";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
 
   const fetchReports = async () => {
     try {
+
       const response = await axios.get(
         "http://127.0.0.1:8000/reports"
       );
@@ -23,7 +25,9 @@ function App() {
       setHistory(response.data);
 
     } catch (error) {
+
       console.log(error);
+
     }
   };
 
@@ -101,10 +105,11 @@ function App() {
                 >
 
                   <p className="font-semibold text-lg break-all mb-2">
+
                     {item.file_name
                       .replace("_report.json", "")
-                      .replace("scan_", "")
-                    }
+                      .replace("scan_", "")}
+
                   </p>
 
                   <p
@@ -156,7 +161,7 @@ function App() {
                   </h1>
 
                   <p className="text-zinc-400 text-lg mt-2">
-                    Scan websites for missing security headers and SSL risks
+                    Scan websites for vulnerabilities, SSL issues, and open ports
                   </p>
 
                 </div>
@@ -334,7 +339,67 @@ function App() {
 
                 </div>
 
-                {/* DETAILS */}
+                {/* PORTS */}
+
+                <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
+
+                  <div className="flex items-center gap-3 mb-8">
+
+                    <Network
+                      className="text-red-500"
+                      size={30}
+                    />
+
+                    <h2 className="text-3xl font-bold">
+                      Open Ports
+                    </h2>
+
+                  </div>
+
+                  {result?.ports?.open_ports?.length > 0 ? (
+
+                    <div className="grid md:grid-cols-3 gap-6">
+
+                      {result?.ports?.open_ports?.map((port, index) => (
+
+                        <div
+                          key={index}
+                          className="bg-zinc-800/70 border border-zinc-700 p-6 rounded-2xl"
+                        >
+
+                          <p className="text-zinc-400 mb-2">
+                            Port
+                          </p>
+
+                          <h3 className="text-4xl font-black text-red-500 mb-4">
+                            {port.port}
+                          </h3>
+
+                          <p className="text-lg font-semibold">
+                            {port.service}
+                          </p>
+
+                          <p className="text-green-500 mt-2 font-semibold">
+                            {port.status}
+                          </p>
+
+                        </div>
+
+                      ))}
+
+                    </div>
+
+                  ) : (
+
+                    <p className="text-zinc-400">
+                      No open ports detected
+                    </p>
+
+                  )}
+
+                </div>
+
+                {/* HEADER DETAILS */}
 
                 <div className="grid md:grid-cols-2 gap-6">
 
