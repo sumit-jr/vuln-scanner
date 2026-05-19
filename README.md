@@ -134,8 +134,8 @@ GET /reports
 
 ## 📸 Screenshots
 
-![Dashboard](./screenshots/dashboard.png)
-![Google Scan](./screenshots/google-scan.png)
+![Dashboard](./frontend/screenshots/dashboard.png)
+![Google Scan](./frontend/screenshots/google-scan.png)
 
 ---
 
