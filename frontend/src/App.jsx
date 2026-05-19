@@ -385,6 +385,50 @@ function App() {
                           <p className="text-zinc-400 text-sm mt-4 break-all">
                             {port.banner}
                           </p>
+                          {port.cves?.length > 0 && (
+
+  <div className="mt-5 space-y-3">
+
+    <p className="text-red-400 font-bold">
+      Known Vulnerabilities
+    </p>
+
+    {port.cves.map((cve, idx) => (
+
+      <div
+        key={idx}
+        className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl"
+      >
+
+        <p className="text-red-400 font-bold">
+          {cve.cve_id}
+        </p>
+
+        <p className="text-sm text-zinc-300 mt-1">
+          {cve.description}
+        </p>
+
+        <p
+          className={`mt-2 font-semibold ${
+            cve.severity === "Critical"
+              ? "text-red-500"
+              : cve.severity === "High"
+              ? "text-orange-400"
+              : "text-yellow-400"
+          }`}
+        >
+
+          Severity: {cve.severity}
+
+        </p>
+
+      </div>
+
+    ))}
+
+  </div>
+
+)}
 
                         </div>
 

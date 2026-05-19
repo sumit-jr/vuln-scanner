@@ -1,5 +1,6 @@
 import socket
 from app.scanner.banner_grabber import grab_banner
+from app.scanner.cve_mapper import map_cves
 
 
 COMMON_PORTS = {
@@ -34,14 +35,16 @@ def scan_ports(host):
             result = sock.connect_ex((host, port))
 
             if result == 0:
-                
+
                 banner = grab_banner(host, port)
+                cves = map_cves(banner)
 
                 open_ports.append({
                     "port": port,
                     "service": service,
                     "status": "Open",
-                    "banner": banner
+                    "banner": banner,
+                    "cves": cves
                 })
 
             sock.close()
