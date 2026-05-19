@@ -3,3 +3,4 @@
 2026-05-19 06:08:18,218 - INFO - Scanning URL: https://www.google.com/
 2026-05-19 06:08:43,893 - INFO - Scanning URL: https://www.google.com/
 2026-05-19 06:09:00,214 - ERROR - Error scanning https://www.abxhewnajf2.com/: HTTPSConnectionPool(host='www.abxhewnajf2.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x10542c620>: Failed to resolve 'www.abxhewnajf2.com' ([Errno 8] nodename nor servname provided, or not known)"))
+2026-05-19 06:12:17,341 - INFO - Scanning URL: https://www.instagram.com/
