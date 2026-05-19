@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Search,
-  History
+  History,
 } from "lucide-react";
 
 function App() {
@@ -16,7 +16,6 @@ function App() {
 
   const fetchReports = async () => {
     try {
-
       const response = await axios.get(
         "http://127.0.0.1:8000/reports"
       );
@@ -24,16 +23,12 @@ function App() {
       setHistory(response.data);
 
     } catch (error) {
-
       console.log(error);
-
     }
   };
 
   useEffect(() => {
-
     fetchReports();
-
   }, []);
 
   const handleScan = async () => {
@@ -68,30 +63,31 @@ function App() {
 
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-red-950 text-white">
 
-      <div className="grid lg:grid-cols-4">
+      <div className="grid lg:grid-cols-[380px_1fr] min-h-screen">
 
         {/* SIDEBAR */}
 
-        <div className="border-r border-zinc-800 p-6 min-h-screen bg-black/40 backdrop-blur-xl">
+        <div className="border-r border-zinc-800 p-6 bg-black/50 backdrop-blur-2xl">
 
           <div className="flex items-center gap-3 mb-8">
 
-            <History className="text-red-500" />
+            <History
+              className="text-red-500"
+              size={28}
+            />
 
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-3xl font-bold">
               Recent Scans
             </h2>
 
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
 
             {history.length === 0 && (
-
               <p className="text-zinc-500">
                 No scans yet
               </p>
-
             )}
 
             {history
@@ -101,15 +97,18 @@ function App() {
                 <div
                   key={index}
                   onClick={() => setResult(item.report)}
-                  className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-red-500 transition cursor-pointer"
+                  className="bg-zinc-900/70 border border-zinc-800 p-5 rounded-2xl hover:border-red-500 transition-all duration-300 cursor-pointer hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]"
                 >
 
-                  <p className="font-semibold break-all">
-                    {item.file_name}
+                  <p className="font-semibold text-lg break-all mb-2">
+                    {item.file_name
+                      .replace("_report.json", "")
+                      .replace("scan_", "")
+                    }
                   </p>
 
                   <p
-                    className={`text-sm mt-2 ${
+                    className={`font-semibold ${
                       item?.report?.headers?.summary?.overall_risk === "High"
                         ? "text-red-500"
                         : item?.report?.headers?.summary?.overall_risk === "Medium"
@@ -118,7 +117,7 @@ function App() {
                     }`}
                   >
 
-                    {item?.report?.headers?.summary?.overall_risk || "Unknown"} Risk
+                    {item?.report?.headers?.summary?.overall_risk} Risk
 
                   </p>
 
@@ -126,95 +125,104 @@ function App() {
               ))}
 
           </div>
+
         </div>
 
-        {/* MAIN CONTENT */}
+        {/* MAIN */}
 
-        <div className="lg:col-span-3 p-10">
+        <div className="p-8 lg:p-12">
 
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-full">
 
-            <div className="flex items-center gap-4 mb-3">
+            {/* HEADER */}
 
-              <Shield
-                className="text-red-500"
-                size={50}
-              />
+            <div className="mb-10">
 
-              <h1 className="text-5xl font-bold">
-                Vulnerability Scanner
-              </h1>
+              <div className="flex items-center gap-4 mb-4">
 
-            </div>
+                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
 
-            <p className="text-zinc-400 mb-8 text-lg">
-              Scan websites for missing security headers and risks
-            </p>
+                  <Shield
+                    className="text-red-500"
+                    size={50}
+                  />
 
-            {/* INPUT */}
+                </div>
 
-            <div className="flex gap-4 mb-8">
+                <div>
 
-              <input
-                type="text"
-                placeholder="https://example.com"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="flex-1 p-4 rounded-xl bg-zinc-900 border border-zinc-700 outline-none focus:border-red-500"
-              />
+                  <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight">
+                    Vulnerability Scanner
+                  </h1>
 
-              <button
-                onClick={handleScan}
-                disabled={loading}
-                className={`px-6 py-4 rounded-xl font-semibold transition ${
-                  loading
-                    ? "bg-zinc-700 cursor-not-allowed"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
-              >
+                  <p className="text-zinc-400 text-lg mt-2">
+                    Scan websites for missing security headers and SSL risks
+                  </p>
 
-                {loading ? (
-                  "Scanning..."
-                ) : (
-                  <div className="flex items-center gap-2">
+                </div>
 
-                    <Search size={18} />
-
-                    Scan
-
-                  </div>
-                )}
-
-              </button>
-
-            </div>
-
-            {/* LOADING */}
-
-            {loading && (
-
-              <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-400 p-4 rounded-xl mb-6">
-                Scanning target...
               </div>
 
-            )}
+            </div>
+
+            {/* SEARCH */}
+
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-5 mb-10 backdrop-blur-xl">
+
+              <div className="flex flex-col lg:flex-row gap-4">
+
+                <input
+                  type="text"
+                  placeholder="https://example.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="flex-1 bg-zinc-950/80 border border-zinc-700 rounded-2xl px-6 py-5 text-lg outline-none focus:border-red-500 transition placeholder:text-zinc-500"
+                />
+
+                <button
+                  onClick={handleScan}
+                  disabled={loading}
+                  className={`px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 ${
+                    loading
+                      ? "bg-zinc-700 cursor-not-allowed"
+                      : "bg-red-600 hover:bg-red-700 hover:scale-105"
+                  }`}
+                >
+
+                  {loading ? (
+                    "Scanning..."
+                  ) : (
+                    <div className="flex items-center gap-3">
+
+                      <Search size={22} />
+
+                      Scan
+
+                    </div>
+                  )}
+
+                </button>
+
+              </div>
+
+            </div>
 
             {/* EMPTY STATE */}
 
             {!result ? (
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
+              <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl rounded-3xl p-20 text-center">
 
                 <Shield
-                  size={60}
-                  className="mx-auto text-zinc-600 mb-4"
+                  size={80}
+                  className="mx-auto text-zinc-700 mb-6"
                 />
 
-                <h2 className="text-2xl font-bold mb-2">
+                <h2 className="text-4xl font-bold mb-4">
                   No Scan Selected
                 </h2>
 
-                <p className="text-zinc-400">
+                <p className="text-zinc-400 text-lg">
                   Start scanning a website to view security analysis
                 </p>
 
@@ -226,40 +234,40 @@ function App() {
 
                 {/* SUMMARY */}
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-3 gap-6">
 
-                  <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-700">
+                  <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
 
-                    <h2 className="text-zinc-400 mb-2">
+                    <h2 className="text-zinc-400 mb-3 text-lg">
                       Headers Checked
                     </h2>
 
-                    <p className="text-4xl font-bold">
+                    <p className="text-5xl font-black">
                       {result?.headers?.summary?.total_headers_checked}
                     </p>
 
                   </div>
 
-                  <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-700">
+                  <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
 
-                    <h2 className="text-zinc-400 mb-2">
+                    <h2 className="text-zinc-400 mb-3 text-lg">
                       Missing Headers
                     </h2>
 
-                    <p className="text-4xl font-bold">
+                    <p className="text-5xl font-black">
                       {result?.headers?.summary?.missing_headers}
                     </p>
 
                   </div>
 
-                  <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-700">
+                  <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
 
-                    <h2 className="text-zinc-400 mb-2">
+                    <h2 className="text-zinc-400 mb-3 text-lg">
                       Overall Risk
                     </h2>
 
                     <p
-                      className={`text-4xl font-bold ${
+                      className={`text-5xl font-black ${
                         result?.headers?.summary?.overall_risk === "High"
                           ? "text-red-500"
                           : result?.headers?.summary?.overall_risk === "Medium"
@@ -276,15 +284,15 @@ function App() {
 
                 </div>
 
-                {/* SSL INFO */}
+                {/* SSL */}
 
-                <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-700">
+                <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
 
-                  <h2 className="text-2xl font-bold mb-6">
+                  <h2 className="text-3xl font-bold mb-8">
                     SSL Information
                   </h2>
 
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid md:grid-cols-3 gap-6">
 
                     <div>
 
@@ -292,7 +300,7 @@ function App() {
                         SSL Status
                       </p>
 
-                      <p className="text-green-500 font-semibold">
+                      <p className="text-green-500 text-xl font-bold">
                         {result?.ssl?.ssl_enabled ? "Enabled" : "Disabled"}
                       </p>
 
@@ -304,7 +312,7 @@ function App() {
                         Issuer
                       </p>
 
-                      <p className="font-semibold">
+                      <p className="text-xl font-semibold">
                         {result?.ssl?.issuer?.organizationName || "Unknown"}
                       </p>
 
@@ -316,7 +324,7 @@ function App() {
                         Expiry Date
                       </p>
 
-                      <p className="font-semibold">
+                      <p className="text-xl font-semibold">
                         {result?.ssl?.expiry_date || "Unavailable"}
                       </p>
 
@@ -326,7 +334,7 @@ function App() {
 
                 </div>
 
-                {/* HEADER DETAILS */}
+                {/* DETAILS */}
 
                 <div className="grid md:grid-cols-2 gap-6">
 
@@ -335,28 +343,28 @@ function App() {
 
                       <div
                         key={header}
-                        className="bg-zinc-900 p-6 rounded-2xl border border-zinc-700 hover:border-red-500 transition"
+                        className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl hover:border-red-500 transition"
                       >
 
-                        <h3 className="text-xl font-bold mb-4">
+                        <h3 className="text-2xl font-bold mb-6">
                           {header}
                         </h3>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
 
                             {data.status === "Missing" ? (
 
                               <AlertTriangle
-                                size={18}
+                                size={20}
                                 className="text-red-500"
                               />
 
                             ) : (
 
                               <CheckCircle
-                                size={18}
+                                size={20}
                                 className="text-green-500"
                               />
 
@@ -365,8 +373,8 @@ function App() {
                             <span
                               className={
                                 data.status === "Missing"
-                                  ? "text-red-500 font-semibold"
-                                  : "text-green-500 font-semibold"
+                                  ? "text-red-500 font-semibold text-lg"
+                                  : "text-green-500 font-semibold text-lg"
                               }
                             >
 
@@ -376,17 +384,17 @@ function App() {
 
                           </div>
 
-                          <p>
+                          <p className="text-lg">
 
                             Risk:{" "}
 
                             <span
                               className={
                                 data.risk === "High"
-                                  ? "text-red-500 font-semibold"
+                                  ? "text-red-500 font-bold"
                                   : data.risk === "Medium"
-                                  ? "text-yellow-400 font-semibold"
-                                  : "text-green-500 font-semibold"
+                                  ? "text-yellow-400 font-bold"
+                                  : "text-green-500 font-bold"
                               }
                             >
 
@@ -398,9 +406,9 @@ function App() {
 
                           {data.recommendation && (
 
-                            <div className="mt-4 p-4 rounded-xl bg-zinc-800">
+                            <div className="mt-4 p-5 rounded-2xl bg-zinc-800/70 border border-zinc-700">
 
-                              <p className="text-zinc-300 text-sm">
+                              <p className="text-zinc-300">
                                 {data.recommendation}
                               </p>
 
@@ -419,9 +427,26 @@ function App() {
               </div>
             )}
 
+            {/* FOOTER */}
+
+            <footer className="border-t border-zinc-800 mt-12 py-6 text-center text-zinc-500">
+
+              <span className="text-red-500 font-semibold">
+                Vulnerability Scanner
+              </span>
+
+              <span className="mx-3 text-zinc-700">|</span>
+
+              Built with FastAPI & React
+
+            </footer>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }
