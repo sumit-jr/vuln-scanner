@@ -1,6 +1,12 @@
 import requests
 from urllib.parse import urlparse
+import logging
 
+logging.basicConfig(
+    filename="logs/scanner.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 def is_valid_url(url):
     parsed = urlparse(url)
@@ -25,6 +31,8 @@ def check_security_headers(url):
         response = requests.get(url, timeout=5)
 
         headers = response.headers
+
+        logging.info(f"Scanning URL: {url}")
 
         security_headers = {
             "Content-Security-Policy": analyze_header(
@@ -78,5 +86,6 @@ def check_security_headers(url):
             "details": security_headers
         }
 
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error scanning {url}: {str(e)}")
         return {"error": "Unable to access the website"}
