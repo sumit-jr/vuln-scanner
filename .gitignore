@@ -8,3 +8,5 @@ backend/.env
 *.log
 backend/reports/
 frontend/node_modules/
+
+.DS_Store
