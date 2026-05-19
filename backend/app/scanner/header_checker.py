@@ -1,6 +1,9 @@
+from fileinput import filename
+
 import requests
 from urllib.parse import urlparse
 import logging
+import json
 
 logging.basicConfig(
     filename="logs/scanner.log",
@@ -33,6 +36,8 @@ def check_security_headers(url):
         headers = response.headers
 
         logging.info(f"Scanning URL: {url}")
+
+        filename = url.replace("https://", "").replace("http://", "").replace("/", "_")
 
         security_headers = {
             "Content-Security-Policy": analyze_header(
@@ -77,14 +82,19 @@ def check_security_headers(url):
         else:
             overall_risk = "Low"
 
-        return {
+        report = {
             "summary": {
-                "total_headers_checked": len(security_headers),
-                "missing_headers": missing_headers,
-                "overall_risk": overall_risk    
-            },
-            "details": security_headers
-        }
+            "total_headers_checked": len(security_headers),
+            "missing_headers": missing_headers,
+            "overall_risk": overall_risk
+        },
+        "details": security_headers
+}
+
+        with open(f"reports/{filename}_report.json", "w") as file:
+            json.dump(report, file, indent=4)
+
+        return report
 
     except requests.exceptions.RequestException as e:
         logging.error(f"Error scanning {url}: {str(e)}")
