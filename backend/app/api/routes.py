@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from app.scanner.header_checker import check_security_headers
 from app.models.scan_models import ScanRequest
+from app.scanner.ssl_checker import check_ssl
+from app.services.report_service import save_report
 import os
 import json
 
@@ -15,7 +17,14 @@ def root():
 
 @router.post("/scan")
 def scan(request: ScanRequest):
-    return check_security_headers(request.url)
+    scan_result = {
+    "headers": check_security_headers(request.url),
+    "ssl": check_ssl(request.url)
+    }
+
+    save_report(scan_result)
+
+    return scan_result
 
 @router.get("/reports")
 def get_reports():
