@@ -499,24 +499,59 @@ function App() {
 
   {result?.technologies?.length > 0 ? (
 
-    <div className="flex flex-wrap gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-      {result.technologies.map((tech, index) => (
+    {result.technologies.map((tech, index) => (
 
-        <div
-          key={index}
-          className="bg-blue-500/10 border border-blue-500/20 text-blue-300 px-6 py-4 rounded-2xl text-lg font-bold hover:scale-105 transition"
-        >
+      <div
+        key={index}
+        className="bg-black border border-zinc-800 rounded-3xl p-6 hover:border-blue-500 transition"
+      >
 
-          {tech}
+        <div className="flex items-center justify-between mb-4">
+
+          <div>
+
+            <h3 className="text-2xl font-black text-blue-300">
+
+              {tech.name}
+
+            </h3>
+
+            <p className="text-zinc-500 mt-1">
+              Technology Detection
+            </p>
+
+          </div>
+
+          <div className="bg-blue-500/10 text-blue-300 px-4 py-2 rounded-full font-bold text-sm">
+
+            {tech.confidence}%
+
+          </div>
 
         </div>
 
-      ))}
+        {/* PROGRESS BAR */}
 
-    </div>
+        <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
 
-  ) : (
+          <div
+            className="bg-blue-500 h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${tech.confidence}%`
+            }}
+          />
+
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+
+) : (
 
     <div className="bg-black border border-zinc-800 rounded-2xl p-8 text-center">
 
