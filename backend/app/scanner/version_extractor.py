@@ -45,21 +45,52 @@ def extract_software_version(banner):
 
         # OpenSSH
         (
-            r"OpenSSH[_\-\/ ](\d+\.\d+\.\d+)",
+            r"OpenSSH[_\-\/ ](\d+\.\d+(?:\.\d+)?)",
             "OpenSSH"
         ),
 
         # Apache
         (
-            r"Apache\/(\d+\.\d+\.\d+)",
+            r"Apache\/(\d+\.\d+(?:\.\d+)?)",
             "Apache"
         ),
 
         # nginx
         (
-            r"nginx\/(\d+\.\d+\.\d+)",
+            r"nginx\/(\d+\.\d+(?:\.\d+)?)",
             "nginx"
+        ),
+
+        # PHP
+        (
+            r"PHP\/(\d+\.\d+(?:\.\d+)?)",
+            "PHP"
+        ),
+
+        # MySQL
+        (
+            r"MySQL\/(\d+\.\d+(?:\.\d+)?)",
+            "MySQL"
+        ),
+
+        # OpenSSL
+        (
+            r"OpenSSL\/(\d+\.\d+(?:\.\d+)?)",
+            "OpenSSL"
+        ),
+
+        # Exim
+        (
+            r"Exim[ ](\d+\.\d+(?:\.\d+)?)",
+            "Exim"
+        ),
+
+        # vsFTPd
+        (
+            r"vsFTPd[ ](\d+\.\d+(?:\.\d+)?)",
+            "vsFTPd"
         )
+
     ]
 
     for pattern, software_name in patterns:
@@ -74,6 +105,6 @@ def extract_software_version(banner):
 
             version = match.group(1)
 
-            return f"{software_name}/{version}"
+            return f"{software_name}_{version}"
 
     return None
