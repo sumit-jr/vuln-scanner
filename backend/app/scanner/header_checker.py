@@ -168,18 +168,6 @@ def check_security_headers(url):
 
         }
 
-        # OPTIONAL HEADER-ONLY REPORT
-        with open(
-            f"reports/{filename}_headers.json",
-            "w"
-        ) as file:
-
-            json.dump(
-                report,
-                file,
-                indent=4
-            )
-
         return report
 
     except requests.exceptions.RequestException as e:
