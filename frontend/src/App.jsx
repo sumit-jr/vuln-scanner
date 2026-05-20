@@ -31,6 +31,7 @@ function App() {
     ports: true,
     ssl: true,
     headers: true,
+    directories: true,
   });
 
   const toggleSection = (section) => {
@@ -833,6 +834,106 @@ const exportPDF = () => {
                   )}
 
                 </div>
+
+                {/* DIRECTORY DISCOVERY */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
+
+  <button
+    onClick={() => toggleSection("directories")}
+    className="w-full flex items-center justify-between p-8"
+  >
+
+    <div className="flex items-center gap-4">
+
+      <Search
+        className="text-blue-400"
+        size={34}
+      />
+
+      <h2 className="text-4xl font-black">
+        Directory Discovery
+      </h2>
+
+    </div>
+
+    {openSections.directories ? (
+      <ChevronDown size={30} />
+    ) : (
+      <ChevronRight size={30} />
+    )}
+
+  </button>
+
+  {openSections.directories && (
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
+
+      {result?.directories?.directories?.length > 0 ? (
+
+        result.directories.directories.map(
+          (dir, index) => {
+
+            const statusColor =
+              dir.status_code === 200
+                ? "text-green-400 bg-green-500/10"
+                : dir.status_code === 403
+                ? "text-red-400 bg-red-500/10"
+                : "text-yellow-300 bg-yellow-500/10";
+
+            return (
+
+              <div
+                key={index}
+                className="bg-black border border-zinc-800 rounded-3xl p-6"
+              >
+
+                <div className="flex items-center justify-between mb-5">
+
+                  <h3 className="text-2xl font-black text-white break-all">
+
+                    {dir.path}
+
+                  </h3>
+
+                  <span
+                    className={`px-4 py-2 rounded-full text-sm font-bold ${statusColor}`}
+                  >
+
+                    {dir.status_code}
+
+                  </span>
+
+                </div>
+
+                <p className="text-zinc-500">
+                  Directory discovered during reconnaissance scan
+                </p>
+
+              </div>
+
+            );
+
+          }
+        )
+
+      ) : (
+
+        <div className="bg-black border border-zinc-800 rounded-3xl p-8 col-span-full text-center">
+
+          <p className="text-zinc-500 text-lg">
+            No interesting directories discovered
+          </p>
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
+
+</div>
 
                 {/* SSL */}
 
