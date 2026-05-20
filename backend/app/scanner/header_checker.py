@@ -2,7 +2,11 @@ import requests
 from urllib.parse import urlparse
 import logging
 import json
+import os
 
+
+# CREATE LOG DIRECTORY IF NOT EXISTS
+os.makedirs("logs", exist_ok=True)
 
 logging.basicConfig(
     filename="logs/scanner.log",
@@ -12,37 +16,81 @@ logging.basicConfig(
 
 
 def is_valid_url(url):
+
     parsed = urlparse(url)
-    return all([parsed.scheme, parsed.netloc])
+
+    return all([
+        parsed.scheme,
+        parsed.netloc
+    ])
 
 
-def analyze_header(header_value, risk, recommendation):
+def truncate_value(value, limit=120):
+
+    if not value:
+        return None
+
+    if len(value) > limit:
+        return value[:limit] + "..."
+
+    return value
+
+
+def analyze_header(
+    header_value,
+    risk,
+    recommendation
+):
+
     return {
-        "value": header_value,
-        "status": "Present" if header_value else "Missing",
-        "risk": "Low" if header_value else risk,
-        "recommendation": None if header_value else recommendation
+
+        "value": truncate_value(header_value),
+
+        "status": (
+            "Present"
+            if header_value
+            else "Missing"
+        ),
+
+        "risk": (
+            "Low"
+            if header_value
+            else risk
+        ),
+
+        "recommendation": (
+            None
+            if header_value
+            else recommendation
+        )
+
     }
 
 
 def check_security_headers(url):
 
     if not is_valid_url(url):
-        return {"error": "Invalid URL"}
+
+        return {
+            "error": "Invalid URL"
+        }
 
     try:
+
         response = requests.get(
             url,
             timeout=5,
             allow_redirects=True,
             headers={
                 "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0 Safari/537.36"
-            )
-    }
-)
+                    "Mozilla/5.0 "
+                    "(Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) "
+                    "Chrome/124.0 Safari/537.36"
+                )
+            }
+        )
 
         headers = response.headers
 
@@ -55,6 +103,7 @@ def check_security_headers(url):
         )
 
         security_headers = {
+
             "Content-Security-Policy": analyze_header(
                 headers.get("Content-Security-Policy"),
                 "High",
@@ -78,6 +127,7 @@ def check_security_headers(url):
                 "Medium",
                 "Add X-Content-Type-Options header to prevent MIME-type sniffing"
             )
+
         }
 
         missing_headers = sum(
@@ -91,26 +141,41 @@ def check_security_headers(url):
         )
 
         if high_risk_count >= 2:
+
             overall_risk = "High"
+
         elif missing_headers >= 2:
+
             overall_risk = "Medium"
+
         else:
+
             overall_risk = "Low"
 
         report = {
-            "summary": {
-                "total_headers_checked": len(security_headers),
-                "missing_headers": missing_headers,
-                "overall_risk": overall_risk
-            },
-            "details": security_headers
-        }
 
-        with open(f"reports/{filename}_report.json", "w") as file:
-            json.dump(report, file, indent=4)
+            "summary": {
+
+                "total_headers_checked": len(security_headers),
+
+                "missing_headers": missing_headers,
+
+                "overall_risk": overall_risk
+
+            },
+
+            "details": security_headers
+
+        }
 
         return report
 
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error scanning {url}: {str(e)}")
-        return {"error": "Unable to access the website"}
+
+        logging.error(
+            f"Error scanning {url}: {str(e)}"
+        )
+
+        return {
+            "error": "Unable to access the website"
+        }

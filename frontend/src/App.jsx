@@ -1,21 +1,50 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Shield,
-  AlertTriangle,
-  CheckCircle,
   Search,
   History,
+  ChevronDown,
+  ChevronRight,
+  Network,
+  AlertTriangle,
+  CheckCircle,
+  Trash2,
 } from "lucide-react";
 
+import { useState, useEffect } from "react";
+import axios from "axios";
+
 function App() {
+
   const [url, setUrl] = useState("");
+
   const [result, setResult] = useState(null);
+
   const [loading, setLoading] = useState(false);
+
   const [history, setHistory] = useState([]);
 
+  const [showAllScans, setShowAllScans] = useState(false);
+
+
+  const [openSections, setOpenSections] = useState({
+    ports: true,
+    ssl: true,
+    headers: true,
+  });
+
+  const toggleSection = (section) => {
+
+    setOpenSections({
+      ...openSections,
+      [section]: !openSections[section],
+    });
+
+  };
+
   const fetchReports = async () => {
+
     try {
+
       const response = await axios.get(
         "http://127.0.0.1:8000/reports"
       );
@@ -23,12 +52,17 @@ function App() {
       setHistory(response.data);
 
     } catch (error) {
+
       console.log(error);
+
     }
+
   };
 
   useEffect(() => {
+
     fetchReports();
+
   }, []);
 
   const handleScan = async () => {
@@ -57,106 +91,225 @@ function App() {
     }
 
     setLoading(false);
+
   };
 
+  const deleteScan = async (fileName) => {
+
+  try {
+
+    await axios.delete(
+      `http://127.0.0.1:8000/reports/${fileName}`
+    );
+
+    const updatedHistory = history.filter(
+      (item) => item.file_name !== fileName
+    );
+
+    setHistory(updatedHistory);
+
+    if (
+      result &&
+      history.find(
+        (item) => item.file_name === fileName
+      )?.report?.target === result?.target
+    ) {
+
+      setResult(null);
+
+    }
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-red-950 text-white">
+    <div className="min-h-screen bg-black text-white">
 
-      <div className="grid lg:grid-cols-[380px_1fr] min-h-screen">
+      <div className="grid lg:grid-cols-[320px_1fr] h-screen">
 
-        {/* SIDEBAR */}
+       {/* SIDEBAR */}
 
-        <div className="border-r border-zinc-800 p-6 bg-black/50 backdrop-blur-2xl">
+<div className="border-r border-zinc-900 bg-zinc-950 flex flex-col h-screen sticky top-0">
 
-          <div className="flex items-center gap-3 mb-8">
+  {/* HEADER */}
 
-            <History
-              className="text-red-500"
-              size={28}
-            />
+  <div className="p-6 border-b border-zinc-900">
 
-            <h2 className="text-3xl font-bold">
-              Recent Scans
-            </h2>
+    <div className="flex items-center gap-4">
+
+      <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
+
+        <History
+          className="text-red-500"
+          size={32}
+        />
+
+      </div>
+
+      <div>
+
+        <h2 className="text-5xl font-black leading-none">
+          Recent
+          <br />
+          Scans
+        </h2>
+
+        <p className="text-zinc-500 mt-2">
+          Security scan history
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* HISTORY LIST */}
+
+<div className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 pb-32">
+
+  {(showAllScans ? history : history.slice(0, 5)).map(
+    (item, index) => {
+
+      const risk =
+        item.report?.headers?.summary?.overall_risk ||
+        "Low";
+
+      const domain =
+        item.report?.target ||
+        item.file_name
+          ?.replace(".json", "")
+          ?.replace("scan_", "") ||
+        "Unknown Target";
+
+      return (
+
+        <div
+          key={index}
+          onClick={() => setResult(item.report)}
+          className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 hover:border-red-500 transition-all cursor-pointer group"
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-3">
+
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  risk === "High"
+                    ? "bg-red-500"
+                    : risk === "Medium"
+                    ? "bg-yellow-400"
+                    : "bg-green-500"
+                }`}
+              />
+
+              <span
+                className={`text-xs font-bold px-3 py-1 rounded-full ${
+                  risk === "High"
+                    ? "bg-red-500/10 text-red-400"
+                    : risk === "Medium"
+                    ? "bg-yellow-500/10 text-yellow-300"
+                    : "bg-green-500/10 text-green-400"
+                }`}
+              >
+
+                {risk}
+
+              </span>
+
+            </div>
+
+            <button
+              onClick={(e) => {
+
+                e.stopPropagation();
+
+                deleteScan(item.file_name);
+
+              }}
+              className="text-zinc-500 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+            >
+
+              <Trash2 size={18} />
+
+            </button>
 
           </div>
 
-          <div className="space-y-4">
+          <div className="mt-5">
 
-            {history.length === 0 && (
-              <p className="text-zinc-500">
-                No scans yet
-              </p>
-            )}
+            <p className="font-bold text-xl break-all text-white">
 
-            {history
-              .filter((item) => item?.report?.headers?.summary)
-              .map((item, index) => (
+              {domain}
 
-                <div
-                  key={index}
-                  onClick={() => setResult(item.report)}
-                  className="bg-zinc-900/70 border border-zinc-800 p-5 rounded-2xl hover:border-red-500 transition-all duration-300 cursor-pointer hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]"
-                >
-
-                  <p className="font-semibold text-lg break-all mb-2">
-                    {item.file_name
-                      .replace("_report.json", "")
-                      .replace("scan_", "")
-                    }
-                  </p>
-
-                  <p
-                    className={`font-semibold ${
-                      item?.report?.headers?.summary?.overall_risk === "High"
-                        ? "text-red-500"
-                        : item?.report?.headers?.summary?.overall_risk === "Medium"
-                        ? "text-yellow-400"
-                        : "text-green-500"
-                    }`}
-                  >
-
-                    {item?.report?.headers?.summary?.overall_risk} Risk
-
-                  </p>
-
-                </div>
-              ))}
+            </p>
 
           </div>
 
         </div>
 
+      );
+
+    }
+  )}
+  
+  {history.length > 5 && (
+
+  <button
+    onClick={() =>
+      setShowAllScans(!showAllScans)
+    }
+    className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4 font-bold hover:border-red-500 transition"
+  >
+
+    {showAllScans
+      ? "Show Less"
+      : "View All Scans"}
+
+  </button>
+  )}
+
+</div>
+
+</div>{/* END SIDEBAR */}
+
+
+
         {/* MAIN */}
 
-        <div className="p-8 lg:p-12">
+        <div className="overflow-y-auto h-screen">
 
-          <div className="max-w-full">
+          <div className="max-w-7xl mx-auto p-8">
 
             {/* HEADER */}
 
-            <div className="mb-10">
+            <div className="mb-12">
 
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-6">
 
-                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
+                <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl">
 
                   <Shield
                     className="text-red-500"
-                    size={50}
+                    size={60}
                   />
 
                 </div>
 
                 <div>
 
-                  <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight">
+                  <h1 className="text-5xl lg:text-6xl font-black tracking-tight">
                     Vulnerability Scanner
                   </h1>
 
-                  <p className="text-zinc-400 text-lg mt-2">
-                    Scan websites for missing security headers and SSL risks
+                  <p className="text-zinc-500 text-xl mt-2">
+                    Advanced vulnerability intelligence dashboard
                   </p>
 
                 </div>
@@ -167,7 +320,7 @@ function App() {
 
             {/* SEARCH */}
 
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-5 mb-10 backdrop-blur-xl">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-[2rem] p-4 mb-10">
 
               <div className="flex flex-col lg:flex-row gap-4">
 
@@ -176,16 +329,16 @@ function App() {
                   placeholder="https://example.com"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="flex-1 bg-zinc-950/80 border border-zinc-700 rounded-2xl px-6 py-5 text-lg outline-none focus:border-red-500 transition placeholder:text-zinc-500"
+                  className="flex-1 bg-black border border-zinc-800 rounded-2xl px-6 py-5 text-xl outline-none focus:border-red-500 transition"
                 />
 
                 <button
                   onClick={handleScan}
                   disabled={loading}
-                  className={`px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 ${
+                  className={`px-10 py-5 rounded-2xl font-bold text-xl transition ${
                     loading
                       ? "bg-zinc-700 cursor-not-allowed"
-                      : "bg-red-600 hover:bg-red-700 hover:scale-105"
+                      : "bg-red-600 hover:bg-red-700"
                   }`}
                 >
 
@@ -194,9 +347,9 @@ function App() {
                   ) : (
                     <div className="flex items-center gap-3">
 
-                      <Search size={22} />
+                      <Search size={24} />
 
-                      Scan
+                      Scan Target
 
                     </div>
                   )}
@@ -211,19 +364,19 @@ function App() {
 
             {!result ? (
 
-              <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl rounded-3xl p-20 text-center">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-[2rem] p-24 text-center">
 
                 <Shield
-                  size={80}
-                  className="mx-auto text-zinc-700 mb-6"
+                  size={90}
+                  className="mx-auto text-zinc-700 mb-8"
                 />
 
-                <h2 className="text-4xl font-bold mb-4">
+                <h2 className="text-5xl font-black mb-4">
                   No Scan Selected
                 </h2>
 
-                <p className="text-zinc-400 text-lg">
-                  Start scanning a website to view security analysis
+                <p className="text-zinc-500 text-xl">
+                  Start scanning a target to view results
                 </p>
 
               </div>
@@ -231,42 +384,31 @@ function App() {
             ) : (
 
               <div className="space-y-8">
+                <div className="mb-8">
+
+  <p className="text-zinc-500 text-lg mb-2">
+    Current Target
+  </p>
+
+  <h2 className="text-4xl font-black break-all">
+
+    {result?.target}
+
+  </h2>
+
+</div>
 
                 {/* SUMMARY */}
 
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-                  <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
 
-                    <h2 className="text-zinc-400 mb-3 text-lg">
-                      Headers Checked
-                    </h2>
-
-                    <p className="text-5xl font-black">
-                      {result?.headers?.summary?.total_headers_checked}
+                    <p className="text-zinc-500 mb-4 text-lg">
+                      Risk Level
                     </p>
 
-                  </div>
-
-                  <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
-
-                    <h2 className="text-zinc-400 mb-3 text-lg">
-                      Missing Headers
-                    </h2>
-
-                    <p className="text-5xl font-black">
-                      {result?.headers?.summary?.missing_headers}
-                    </p>
-
-                  </div>
-
-                  <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
-
-                    <h2 className="text-zinc-400 mb-3 text-lg">
-                      Overall Risk
-                    </h2>
-
-                    <p
+                    <h2
                       className={`text-5xl font-black ${
                         result?.headers?.summary?.overall_risk === "High"
                           ? "text-red-500"
@@ -278,168 +420,314 @@ function App() {
 
                       {result?.headers?.summary?.overall_risk}
 
-                    </p>
+                    </h2>
 
                   </div>
+
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
+
+                    <p className="text-zinc-500 mb-4 text-lg">
+                      Open Ports
+                    </p>
+
+                    <h2 className="text-5xl font-black">
+
+                      {result?.ports?.total_open_ports}
+
+                    </h2>
+
+                  </div>
+
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
+
+                    <p className="text-zinc-500 mb-4 text-lg">
+                      Missing Headers
+                    </p>
+
+                    <h2 className="text-5xl font-black">
+
+                      {result?.headers?.summary?.missing_headers}
+
+                    </h2>
+
+                  </div>
+
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
+
+                    <p className="text-zinc-500 mb-4 text-lg">
+                      Headers Checked
+                    </p>
+
+                    <h2 className="text-5xl font-black">
+
+                      {result?.headers?.summary?.total_headers_checked}
+
+                    </h2>
+
+                  </div>
+
+                </div>
+
+                {/* TECHNOLOGIES */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
+
+  <div className="flex items-center gap-4 mb-8">
+
+    <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl">
+
+      <Shield
+        className="text-blue-400"
+        size={30}
+      />
+
+    </div>
+
+    <div>
+
+      <h2 className="text-4xl font-black">
+        Technology Fingerprinting
+      </h2>
+
+      <p className="text-zinc-500 mt-1">
+        Detected technologies and frameworks
+      </p>
+
+    </div>
+
+  </div>
+
+  {result?.technologies?.length > 0 ? (
+
+    <div className="flex flex-wrap gap-4">
+
+      {result.technologies.map((tech, index) => (
+
+        <div
+          key={index}
+          className="bg-blue-500/10 border border-blue-500/20 text-blue-300 px-6 py-4 rounded-2xl text-lg font-bold hover:scale-105 transition"
+        >
+
+          {tech}
+
+        </div>
+
+      ))}
+
+    </div>
+
+  ) : (
+
+    <div className="bg-black border border-zinc-800 rounded-2xl p-8 text-center">
+
+      <p className="text-zinc-500 text-lg">
+        No technologies detected
+      </p>
+
+    </div>
+
+  )}
+
+</div>
+
+                {/* PORTS */}
+
+                <div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
+
+                  <button
+                    onClick={() => toggleSection("ports")}
+                    className="w-full flex items-center justify-between p-8"
+                  >
+
+                    <div className="flex items-center gap-4">
+
+                      <Network
+                        className="text-red-500"
+                        size={34}
+                      />
+
+                      <h2 className="text-4xl font-black">
+                        Open Ports & Vulnerabilities
+                      </h2>
+
+                    </div>
+
+                    {openSections.ports ? (
+                      <ChevronDown size={30} />
+                    ) : (
+                      <ChevronRight size={30} />
+                    )}
+
+                  </button>
+
+                  {openSections.ports && (
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
+
+                      {result?.ports?.open_ports?.map((port, index) => {
+                        return (
+                          <div
+                            key={index}
+                            className="bg-black border border-zinc-800 rounded-3xl p-8"
+                          >
+
+                            <div className="flex items-center justify-between mb-6">
+
+                              <div>
+
+                                <h2 className="text-5xl lg:text-6xl font-black text-red-500 break-all">
+                                  {port.port}
+                                </h2>
+
+                                <p className="text-zinc-400 text-2xl mt-2">
+                                  {port.service}
+                                </p>
+
+                              </div>
+
+                              <div className="bg-green-500/10 text-green-400 px-5 py-2 rounded-full font-bold">
+
+                                Open
+
+                              </div>
+
+                            </div>
+
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-5">
+
+                              <p className="text-zinc-500 mb-2">
+                                Banner
+                              </p>
+
+                              <p className="text-zinc-300 break-all">
+                                {port.banner}
+                              </p>
+
+                            </div>
+
+                            {port.cves && port.cves.length > 0 && (
+                              <div className="space-y-4">
+
+                                <h3 className="text-xl font-bold text-red-400">
+                                  Known Vulnerabilities
+                                </h3>
+
+                                {port.cves.map((cve, idx) => {
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5"
+                                    >
+
+                                      <p className="font-bold text-red-400 mb-2">
+                                        {cve.cve_id}
+                                      </p>
+
+                                      <p className="text-zinc-300 mb-3">
+                                        {cve.description}
+                                      </p>
+
+                                      <span className="text-sm font-bold bg-red-500/10 text-red-400 px-3 py-1 rounded-full">
+                                        Severity: {cve.severity}
+                                      </span>
+
+                                    </div>
+                                  );
+                                })}
+
+                              </div>
+                            )}
+
+                          </div>
+                        );
+                      })}
+
+                    </div>
+
+                  )}
 
                 </div>
 
                 {/* SSL */}
 
-                <div className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl">
+                <div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
 
-                  <h2 className="text-3xl font-bold mb-8">
-                    SSL Information
-                  </h2>
+                  <button
+                    onClick={() => toggleSection("ssl")}
+                    className="w-full flex items-center justify-between p-8"
+                  >
 
-                  <div className="grid md:grid-cols-3 gap-6">
+                    <h2 className="text-4xl font-black">
+                      SSL Information
+                    </h2>
 
-                    <div>
+                    {openSections.ssl ? (
+                      <ChevronDown size={30} />
+                    ) : (
+                      <ChevronRight size={30} />
+                    )}
 
-                      <p className="text-zinc-400 mb-2">
-                        SSL Status
-                      </p>
+                  </button>
 
-                      <p className="text-green-500 text-xl font-bold">
-                        {result?.ssl?.ssl_enabled ? "Enabled" : "Disabled"}
-                      </p>
+                  {openSections.ssl && (
 
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-8 pb-8">
 
-                    <div>
+                      <div className="bg-black border border-zinc-800 rounded-3xl p-6">
 
-                      <p className="text-zinc-400 mb-2">
-                        Issuer
-                      </p>
+                        <p className="text-zinc-500 mb-3">
+                          SSL Status
+                        </p>
 
-                      <p className="text-xl font-semibold">
-                        {result?.ssl?.issuer?.organizationName || "Unknown"}
-                      </p>
+                        <p className="text-2xl font-bold text-green-500">
 
-                    </div>
+                          {result?.ssl?.ssl_enabled
+                            ? "Enabled"
+                            : "Disabled"}
 
-                    <div>
-
-                      <p className="text-zinc-400 mb-2">
-                        Expiry Date
-                      </p>
-
-                      <p className="text-xl font-semibold">
-                        {result?.ssl?.expiry_date || "Unavailable"}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* DETAILS */}
-
-                <div className="grid md:grid-cols-2 gap-6">
-
-                  {Object.entries(result?.headers?.details || {}).map(
-                    ([header, data]) => (
-
-                      <div
-                        key={header}
-                        className="bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl p-8 rounded-3xl hover:border-red-500 transition"
-                      >
-
-                        <h3 className="text-2xl font-bold mb-6">
-                          {header}
-                        </h3>
-
-                        <div className="space-y-4">
-
-                          <div className="flex items-center gap-3">
-
-                            {data.status === "Missing" ? (
-
-                              <AlertTriangle
-                                size={20}
-                                className="text-red-500"
-                              />
-
-                            ) : (
-
-                              <CheckCircle
-                                size={20}
-                                className="text-green-500"
-                              />
-
-                            )}
-
-                            <span
-                              className={
-                                data.status === "Missing"
-                                  ? "text-red-500 font-semibold text-lg"
-                                  : "text-green-500 font-semibold text-lg"
-                              }
-                            >
-
-                              {data.status}
-
-                            </span>
-
-                          </div>
-
-                          <p className="text-lg">
-
-                            Risk:{" "}
-
-                            <span
-                              className={
-                                data.risk === "High"
-                                  ? "text-red-500 font-bold"
-                                  : data.risk === "Medium"
-                                  ? "text-yellow-400 font-bold"
-                                  : "text-green-500 font-bold"
-                              }
-                            >
-
-                              {data.risk}
-
-                            </span>
-
-                          </p>
-
-                          {data.recommendation && (
-
-                            <div className="mt-4 p-5 rounded-2xl bg-zinc-800/70 border border-zinc-700">
-
-                              <p className="text-zinc-300">
-                                {data.recommendation}
-                              </p>
-
-                            </div>
-
-                          )}
-
-                        </div>
+                        </p>
 
                       </div>
-                    )
+
+                      <div className="bg-black border border-zinc-800 rounded-3xl p-6">
+
+                        <p className="text-zinc-500 mb-3">
+                          Issuer
+                        </p>
+
+                        <p className="text-xl font-bold">
+
+                          {result?.ssl?.issuer?.organizationName ||
+                            "Unknown"}
+
+                        </p>
+
+                      </div>
+
+                      <div className="bg-black border border-zinc-800 rounded-3xl p-6">
+
+                        <p className="text-zinc-500 mb-3">
+                          Expiry Date
+                        </p>
+
+                        <p className="text-xl font-bold break-all">
+
+                          {result?.ssl?.expiry_date ||
+                            "Unavailable"}
+
+                        </p>
+
+                      </div>
+
+                    </div>
+
                   )}
 
                 </div>
 
               </div>
-            )}
 
-            {/* FOOTER */}
-
-            <footer className="border-t border-zinc-800 mt-12 py-6 text-center text-zinc-500">
-
-              <span className="text-red-500 font-semibold">
-                Vulnerability Scanner
-              </span>
-
-              <span className="mx-3 text-zinc-700">|</span>
-
-              Built with FastAPI & React
-
-            </footer>
+             )}
 
           </div>
 
@@ -448,7 +736,9 @@ function App() {
       </div>
 
     </div>
+
   );
+
 }
 
 export default App;
