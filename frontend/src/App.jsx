@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Trash2,
+  Database,
 } from "lucide-react";
 
 import jsPDF from "jspdf";
@@ -33,6 +34,7 @@ function App() {
     headers: true,
     directories: true,
     xss: true,
+    sqli: true,
   });
 
   const toggleSection = (section) => {
@@ -1059,6 +1061,156 @@ const exportPDF = () => {
           <p className="text-zinc-500 text-lg">
 
             No reflected XSS vulnerabilities detected
+
+          </p>
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
+
+</div>
+
+{/* SQL INJECTION DETECTION */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
+
+  <button
+    onClick={() => toggleSection("sqli")}
+    className="w-full flex items-center justify-between p-8"
+  >
+
+    <div className="flex items-center gap-4">
+
+      <Database
+        className="text-orange-400"
+        size={34}
+      />
+
+      <h2 className="text-4xl font-black">
+        SQL Injection Detection
+      </h2>
+
+    </div>
+
+    {openSections.sqli ? (
+      <ChevronDown size={30} />
+    ) : (
+      <ChevronRight size={30} />
+    )}
+
+  </button>
+
+  {openSections.sqli && (
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
+
+      {result?.sqli?.vulnerabilities?.length > 0 ? (
+
+        result.sqli.vulnerabilities.map(
+          (vuln, index) => (
+
+            <div
+              key={index}
+              className="bg-black border border-orange-500/20 rounded-3xl p-6"
+            >
+
+              <div className="flex items-center justify-between mb-5">
+
+                <h3 className="text-2xl font-black text-orange-400">
+
+                  Possible SQL Injection
+
+                </h3>
+
+                <span className="bg-orange-500/10 text-orange-400 px-4 py-2 rounded-full text-sm font-bold">
+
+                  {vuln.risk}
+
+                </span>
+
+              </div>
+
+              <div className="space-y-4">
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Parameter
+                  </p>
+
+                  <p className="text-white font-bold break-all">
+
+                    {vuln.parameter}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Payload
+                  </p>
+
+                  <p className="text-orange-300 break-all text-sm">
+
+                    {vuln.payload}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Tested URL
+                  </p>
+
+                  <p className="text-zinc-300 break-all text-sm">
+
+                    {vuln.url}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Status Code
+                  </p>
+
+                  <p className="text-white font-bold">
+
+                    {vuln.status_code}
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          )
+        )
+
+      ) : (
+
+        <div className="bg-black border border-zinc-800 rounded-3xl p-8 col-span-full text-center">
+
+          <CheckCircle
+            size={50}
+            className="mx-auto text-green-500 mb-4"
+          />
+
+          <p className="text-zinc-500 text-lg">
+
+            No SQL injection vulnerabilities detected
 
           </p>
 

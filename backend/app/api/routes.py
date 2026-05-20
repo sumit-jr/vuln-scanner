@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from app.scanner.tech_fingerprint import fingerprint_technology
 from app.scanner.directory_bruteforce import scan_directories
 from app.scanner.xss_scanner import scan_xss
+from app.scanner.sqli_scanner import scan_sqli
 import os
 import json
 
@@ -53,7 +54,9 @@ def scan(request: ScanRequest):
 
         "directories": scan_directories(target),
 
-        "xss": scan_xss(target)
+        "xss": scan_xss(target),
+
+        "sqli": scan_sqli(target)
 
     }
 
