@@ -1,37 +1,68 @@
 import re
 
 
-def normalize_version(version):
+PATTERNS = [
 
-    # Remove trailing letters like p1
-    version = re.sub(
-        r"[a-zA-Z].*$",
-        "",
-        version
-    )
+    # OpenSSH
+    r"(OpenSSH[_\-\/ ]\d+\.\d+(?:\.\d+)?)",
 
-    return version
+    # Apache
+    r"(Apache\/\d+\.\d+(?:\.\d+)?)",
+
+    # nginx
+    r"(nginx\/\d+\.\d+(?:\.\d+)?)",
+
+    # PHP
+    r"(PHP\/\d+\.\d+(?:\.\d+)?)",
+
+    # MySQL
+    r"(MySQL\/\d+\.\d+(?:\.\d+)?)",
+
+    # OpenSSL
+    r"(OpenSSL\/\d+\.\d+(?:\.\d+)?)",
+
+    # Exim
+    r"(Exim \d+\.\d+(?:\.\d+)?)",
+
+    # vsFTPd
+    r"(vsFTPd \d+\.\d+(?:\.\d+)?)"
+
+]
+
+
+def normalize_software_name(software):
+
+    software = software.replace("_", " ")
+
+    software = software.strip()
+
+    return software
 
 
 def extract_software_version(banner):
 
-    if not banner:
-
-        return None
-
     patterns = [
 
-        r"OpenSSH[_\-\/ ]([\d\.]+)",
+        # OpenSSH
+        (
+            r"OpenSSH[_\-\/ ](\d+\.\d+\.\d+)",
+            "OpenSSH"
+        ),
 
-        r"Apache\/([\d\.]+)",
+        # Apache
+        (
+            r"Apache\/(\d+\.\d+\.\d+)",
+            "Apache"
+        ),
 
-        r"nginx\/([\d\.]+)",
-
-        r"PHP\/([\d\.]+)"
-
+        # nginx
+        (
+            r"nginx\/(\d+\.\d+\.\d+)",
+            "nginx"
+        )
     ]
 
-    for pattern in patterns:
+    for pattern, software_name in patterns:
 
         match = re.search(
             pattern,
@@ -41,24 +72,8 @@ def extract_software_version(banner):
 
         if match:
 
-            version = normalize_version(
-                match.group(1)
-            )
+            version = match.group(1)
 
-            if "openssh" in pattern.lower():
-
-                return f"OpenSSH_{version}"
-
-            elif "apache" in pattern.lower():
-
-                return f"Apache/{version}"
-
-            elif "nginx" in pattern.lower():
-
-                return f"nginx/{version}"
-
-            elif "php" in pattern.lower():
-
-                return f"PHP/{version}"
+            return f"{software_name}/{version}"
 
     return None

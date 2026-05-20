@@ -8,6 +8,26 @@ urllib3.disable_warnings(
 )
 
 
+def build_banner(server, powered, via):
+
+    detected = []
+
+    if server:
+        detected.append(server)
+
+    if powered:
+        detected.append(powered)
+
+    if via:
+        detected.append(via)
+
+    if detected:
+
+        return " | ".join(detected)
+
+    return None
+
+
 def grab_banner(target, port):
 
     try:
@@ -50,17 +70,19 @@ def grab_banner(target, port):
                 "X-Powered-By"
             )
 
-            if server and powered:
+            via = response.headers.get(
+                "Via"
+            )
 
-                return f"{server} | {powered}"
+            banner = build_banner(
+                server,
+                powered,
+                via
+            )
 
-            if server:
+            if banner:
 
-                return server
-
-            if powered:
-
-                return powered
+                return banner
 
             return "HTTP Service Detected"
 
@@ -85,17 +107,19 @@ def grab_banner(target, port):
                 "X-Powered-By"
             )
 
-            if server and powered:
+            via = response.headers.get(
+                "Via"
+            )
 
-                return f"{server} | {powered}"
+            banner = build_banner(
+                server,
+                powered,
+                via
+            )
 
-            if server:
+            if banner:
 
-                return server
-
-            if powered:
-
-                return powered
+                return banner
 
             return "HTTPS Service Detected"
 
@@ -115,9 +139,23 @@ def grab_banner(target, port):
                 "Server"
             )
 
-            if server:
+            powered = response.headers.get(
+                "X-Powered-By"
+            )
 
-                return server
+            via = response.headers.get(
+                "Via"
+            )
+
+            banner = build_banner(
+                server,
+                powered,
+                via
+            )
+
+            if banner:
+
+                return banner
 
             return "HTTP-ALT Service Detected"
 
