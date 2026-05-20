@@ -21,7 +21,7 @@ def map_cves(banner):
 
     for software, cves in CVE_DATABASE.items():
 
-        if software.lower() == extracted.lower():
+        if software.lower() in extracted.lower():
 
             matches.extend(cves)
 
