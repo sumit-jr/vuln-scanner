@@ -19,14 +19,33 @@ def root():
 
 @router.post("/scan")
 def scan(request: ScanRequest):
-    parsed_url = urlparse(request.url)
+
+    target = request.url.strip()
+
+    # Auto add http:// if user enters only domain
+    if not target.startswith("http://") and not target.startswith("https://"):
+        target = "http://" + target
+
+    parsed_url = urlparse(target)
 
     host = parsed_url.netloc
 
+    headers_result = check_security_headers(target)
+
+    ssl_result = check_ssl(target)
+
+    ports_result = scan_ports(host)
+
     scan_result = {
-        "headers": check_security_headers(request.url),
-        "ssl": check_ssl(request.url),
-        "ports": scan_ports(host)
+
+        "target": host,
+
+        "headers": headers_result,
+
+        "ssl": ssl_result,
+
+        "ports": ports_result
+
     }
 
     save_report(scan_result)
