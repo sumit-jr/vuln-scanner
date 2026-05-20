@@ -1,6 +1,3 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-
 import {
   Shield,
   Search,
@@ -10,7 +7,11 @@ import {
   Network,
   AlertTriangle,
   CheckCircle,
+  Trash2,
 } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 function App() {
 
@@ -24,10 +25,11 @@ function App() {
 
   const [showAllScans, setShowAllScans] = useState(false);
 
+
   const [openSections, setOpenSections] = useState({
     ports: true,
-    ssl: false,
-    headers: false,
+    ssl: true,
+    headers: true,
   });
 
   const toggleSection = (section) => {
@@ -92,138 +94,196 @@ function App() {
 
   };
 
+  const deleteScan = async (fileName) => {
+
+  try {
+
+    await axios.delete(
+      `http://127.0.0.1:8000/reports/${fileName}`
+    );
+
+    const updatedHistory = history.filter(
+      (item) => item.file_name !== fileName
+    );
+
+    setHistory(updatedHistory);
+
+    if (
+      result &&
+      history.find(
+        (item) => item.file_name === fileName
+      )?.report?.target === result?.target
+    ) {
+
+      setResult(null);
+
+    }
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
   return (
 
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen bg-black text-white">
 
       <div className="grid lg:grid-cols-[320px_1fr] h-screen">
 
-        {/* SIDEBAR */}
+       {/* SIDEBAR */}
 
-        <div className="border-r border-zinc-900 bg-zinc-950 flex flex-col">
+<div className="border-r border-zinc-900 bg-zinc-950 flex flex-col h-screen sticky top-0">
 
-          {/* HEADER */}
+  {/* HEADER */}
 
-          <div className="p-6 border-b border-zinc-900">
+  <div className="p-6 border-b border-zinc-900">
 
-            <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4">
 
-              <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
+      <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
 
-                <History
-                  className="text-red-500"
-                  size={30}
-                />
+        <History
+          className="text-red-500"
+          size={32}
+        />
 
-              </div>
+      </div>
 
-              <div>
+      <div>
 
-                <h2 className="text-4xl font-black">
-                  Recent Scans
-                </h2>
+        <h2 className="text-5xl font-black leading-none">
+          Recent
+          <br />
+          Scans
+        </h2>
 
-                <p className="text-zinc-500">
-                  Security scan history
-                </p>
+        <p className="text-zinc-500 mt-2">
+          Security scan history
+        </p>
 
-              </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* HISTORY LIST */}
+
+<div className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 pb-32">
+
+  {(showAllScans ? history : history.slice(0, 5)).map(
+    (item, index) => {
+
+      const risk =
+        item.report?.headers?.summary?.overall_risk ||
+        "Low";
+
+      const domain =
+        item.report?.target ||
+        item.file_name
+          ?.replace(".json", "")
+          ?.replace("scan_", "") ||
+        "Unknown Target";
+
+      return (
+
+        <div
+          key={index}
+          onClick={() => setResult(item.report)}
+          className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 hover:border-red-500 transition-all cursor-pointer group"
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-3">
+
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  risk === "High"
+                    ? "bg-red-500"
+                    : risk === "Medium"
+                    ? "bg-yellow-400"
+                    : "bg-green-500"
+                }`}
+              />
+
+              <span
+                className={`text-xs font-bold px-3 py-1 rounded-full ${
+                  risk === "High"
+                    ? "bg-red-500/10 text-red-400"
+                    : risk === "Medium"
+                    ? "bg-yellow-500/10 text-yellow-300"
+                    : "bg-green-500/10 text-green-400"
+                }`}
+              >
+
+                {risk}
+
+              </span>
 
             </div>
 
+            <button
+              onClick={(e) => {
+
+                e.stopPropagation();
+
+                deleteScan(item.file_name);
+
+              }}
+              className="text-zinc-500 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+            >
+
+              <Trash2 size={18} />
+
+            </button>
+
           </div>
 
-          {/* HISTORY */}
+          <div className="mt-5">
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            <p className="font-bold text-xl break-all text-white">
 
-            {(showAllScans
-              ? history
-              : history.slice(0, 6)
-            )
-              .filter((item) => item?.report?.headers?.summary)
-              .map((item, index) => {
+              {domain}
 
-                const risk =
-                  item?.report?.headers?.summary?.overall_risk;
-
-                const domain =
-                  item?.report?.target ||
-                  "Unknown Target";
-
-                return (
-
-                  <div
-                    key={index}
-                    onClick={() => setResult(item.report)}
-                    className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 hover:border-red-500 transition-all cursor-pointer"
-                  >
-
-                    <div className="flex items-center justify-between mb-4">
-
-                      <div
-                        className={`w-4 h-4 rounded-full ${
-                          risk === "High"
-                            ? "bg-red-500"
-                            : risk === "Medium"
-                            ? "bg-yellow-400"
-                            : "bg-green-500"
-                        }`}
-                      />
-
-                      <span
-                        className={`text-xs font-bold px-3 py-1 rounded-full ${
-                          risk === "High"
-                            ? "bg-red-500/10 text-red-400"
-                            : risk === "Medium"
-                            ? "bg-yellow-500/10 text-yellow-300"
-                            : "bg-green-500/10 text-green-400"
-                        }`}
-                      >
-
-                        {risk}
-
-                      </span>
-
-                    </div>
-
-                    <p className="font-bold text-lg break-all">
-
-                      {domain}
-
-                    </p>
-
-                  </div>
-
-                );
-              })}
-
-            {/* COLLAPSE BUTTON */}
-
-            {history.length > 6 && (
-
-              <button
-                onClick={() =>
-                  setShowAllScans(!showAllScans)
-                }
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4 font-bold hover:border-red-500 transition"
-              >
-
-                {showAllScans
-                  ? "Show Less"
-                  : "View All Scans"}
-
-              </button>
-
-            )}
+            </p>
 
           </div>
 
         </div>
 
+      );
+
+    }
+  )}
+  
+  {history.length > 5 && (
+
+  <button
+    onClick={() =>
+      setShowAllScans(!showAllScans)
+    }
+    className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4 font-bold hover:border-red-500 transition"
+  >
+
+    {showAllScans
+      ? "Show Less"
+      : "View All Scans"}
+
+  </button>
+  )}
+
+</div>
+
+</div>{/* END SIDEBAR */}
+
+
+
         {/* MAIN */}
 
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto h-screen">
 
           <div className="max-w-7xl mx-auto p-8">
 
@@ -324,6 +384,19 @@ function App() {
             ) : (
 
               <div className="space-y-8">
+                <div className="mb-8">
+
+  <p className="text-zinc-500 text-lg mb-2">
+    Current Target
+  </p>
+
+  <h2 className="text-4xl font-black break-all">
+
+    {result?.target}
+
+  </h2>
+
+</div>
 
                 {/* SUMMARY */}
 
@@ -395,6 +468,68 @@ function App() {
 
                 </div>
 
+                {/* TECHNOLOGIES */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8">
+
+  <div className="flex items-center gap-4 mb-8">
+
+    <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl">
+
+      <Shield
+        className="text-blue-400"
+        size={30}
+      />
+
+    </div>
+
+    <div>
+
+      <h2 className="text-4xl font-black">
+        Technology Fingerprinting
+      </h2>
+
+      <p className="text-zinc-500 mt-1">
+        Detected technologies and frameworks
+      </p>
+
+    </div>
+
+  </div>
+
+  {result?.technologies?.length > 0 ? (
+
+    <div className="flex flex-wrap gap-4">
+
+      {result.technologies.map((tech, index) => (
+
+        <div
+          key={index}
+          className="bg-blue-500/10 border border-blue-500/20 text-blue-300 px-6 py-4 rounded-2xl text-lg font-bold hover:scale-105 transition"
+        >
+
+          {tech}
+
+        </div>
+
+      ))}
+
+    </div>
+
+  ) : (
+
+    <div className="bg-black border border-zinc-800 rounded-2xl p-8 text-center">
+
+      <p className="text-zinc-500 text-lg">
+        No technologies detected
+      </p>
+
+    </div>
+
+  )}
+
+</div>
+
                 {/* PORTS */}
 
                 <div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
@@ -429,9 +564,8 @@ function App() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
 
-                      {result?.ports?.open_ports?.map(
-                        (port, index) => (
-
+                      {result?.ports?.open_ports?.map((port, index) => {
+                        return (
                           <div
                             key={index}
                             className="bg-black border border-zinc-800 rounded-3xl p-8"
@@ -441,7 +575,7 @@ function App() {
 
                               <div>
 
-                                <h2 className="text-6xl font-black text-red-500">
+                                <h2 className="text-5xl lg:text-6xl font-black text-red-500 break-all">
                                   {port.port}
                                 </h2>
 
@@ -466,59 +600,47 @@ function App() {
                               </p>
 
                               <p className="text-zinc-300 break-all">
-
                                 {port.banner}
-
                               </p>
 
                             </div>
 
-                            {port.cves &&
-                              port.cves.length > 0 && (
+                            {port.cves && port.cves.length > 0 && (
+                              <div className="space-y-4">
 
-                                <div className="space-y-4">
+                                <h3 className="text-xl font-bold text-red-400">
+                                  Known Vulnerabilities
+                                </h3>
 
-                                  <h3 className="text-xl font-bold text-red-400">
-                                    Known Vulnerabilities
-                                  </h3>
-
-                                  {port.cves.map((cve, idx) => (
-
+                                {port.cves.map((cve, idx) => {
+                                  return (
                                     <div
                                       key={idx}
                                       className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5"
                                     >
 
                                       <p className="font-bold text-red-400 mb-2">
-
                                         {cve.cve_id}
-
                                       </p>
 
                                       <p className="text-zinc-300 mb-3">
-
                                         {cve.description}
-
                                       </p>
 
                                       <span className="text-sm font-bold bg-red-500/10 text-red-400 px-3 py-1 rounded-full">
-
                                         Severity: {cve.severity}
-
                                       </span>
 
                                     </div>
+                                  );
+                                })}
 
-                                  ))}
-
-                                </div>
-
-                              )}
+                              </div>
+                            )}
 
                           </div>
-
-                        )
-                      )}
+                        );
+                      })}
 
                     </div>
 
@@ -605,7 +727,7 @@ function App() {
 
               </div>
 
-            )}
+             )}
 
           </div>
 
@@ -616,6 +738,7 @@ function App() {
     </div>
 
   );
+
 }
 
 export default App;

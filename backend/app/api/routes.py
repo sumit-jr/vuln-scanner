@@ -5,6 +5,7 @@ from app.scanner.ssl_checker import check_ssl
 from app.services.report_service import save_report
 from app.scanner.port_scanner import scan_ports
 from urllib.parse import urlparse
+from app.scanner.tech_fingerprint import fingerprint_technology
 import os
 import json
 
@@ -40,6 +41,8 @@ def scan(request: ScanRequest):
 
         "target": host,
 
+        "technologies": fingerprint_technology(target),
+
         "headers": headers_result,
 
         "ssl": ssl_result,
@@ -57,11 +60,17 @@ def get_reports():
 
     reports = []
 
-    for file_name in os.listdir("reports"):
+    files = sorted(
+        os.listdir("reports"),
+        reverse=True
+    )
 
-        if file_name.endswith(".json"):
+    for file_name in files:
+
+        if file_name.startswith("scan_") and file_name.endswith(".json"):
 
             with open(f"reports/{file_name}", "r") as file:
+
                 report_data = json.load(file)
 
                 reports.append({
@@ -70,3 +79,17 @@ def get_reports():
                 })
 
     return reports
+
+
+@router.delete("/reports/{file_name}")
+def delete_report(file_name: str):
+
+    file_path = f"reports/{file_name}"
+
+    if os.path.exists(file_path):
+
+        os.remove(file_path)
+
+        return {"message": "Deleted"}
+
+    return {"error": "File not found"}
