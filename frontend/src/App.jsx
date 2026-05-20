@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -126,6 +127,135 @@ function App() {
   }
 
 };
+const exportJSON = () => {
+
+  if (!result) return;
+
+  const dataStr = JSON.stringify(
+    result,
+    null,
+    2
+  );
+
+  const blob = new Blob(
+    [dataStr],
+    {
+      type: "application/json"
+    }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download = `${result.target}-report.json`;
+
+  link.click();
+
+};
+
+const exportPDF = () => {
+
+  if (!result) return;
+
+  const doc = new jsPDF();
+
+  let y = 20;
+
+  doc.setFontSize(22);
+
+  doc.text(
+    "Vulnerability Scan Report",
+    20,
+    y
+  );
+
+  y += 20;
+
+  doc.setFontSize(14);
+
+  doc.text(
+    `Target: ${result.target}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Risk Level: ${result.headers.summary.overall_risk}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Open Ports: ${result.ports.total_open_ports}`,
+    20,
+    y
+  );
+
+  y += 20;
+
+  doc.setFontSize(18);
+
+  doc.text(
+    "Open Ports",
+    20,
+    y
+  );
+
+  y += 15;
+
+  result.ports.open_ports.forEach((port) => {
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Port ${port.port} (${port.service})`,
+      20,
+      y
+    );
+
+    y += 8;
+
+    doc.text(
+      `Banner: ${port.banner}`,
+      25,
+      y
+    );
+
+    y += 8;
+
+    if (port.cves.length > 0) {
+
+      port.cves.forEach((cve) => {
+
+        doc.text(
+          `${cve.cve_id} - ${cve.severity}`,
+          30,
+          y
+        );
+
+        y += 8;
+
+      });
+
+    }
+
+    y += 10;
+
+  });
+
+  doc.save(
+    `${result.target}-report.pdf`
+  );
+
+};
+
   return (
 
     <div className="min-h-screen bg-black text-white">
@@ -395,6 +525,27 @@ function App() {
     {result?.target}
 
   </h2>
+
+</div>
+<div className="flex gap-4 mb-8">
+
+  <button
+    onClick={exportJSON}
+    className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-2xl font-bold transition"
+  >
+
+    Export JSON
+
+  </button>
+
+  <button
+    onClick={exportPDF}
+    className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl font-bold transition"
+  >
+
+    Export PDF
+
+  </button>
 
 </div>
 
