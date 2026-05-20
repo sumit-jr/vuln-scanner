@@ -799,31 +799,85 @@ const exportPDF = () => {
                               <div className="space-y-4">
 
                                 <h3 className="text-xl font-bold text-red-400">
-                                  Known Vulnerabilities
+                                  Detected CVEs
                                 </h3>
 
                                 {port.cves.map((cve, idx) => {
-                                  return (
-                                    <div
-                                      key={idx}
-                                      className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5"
-                                    >
+  return (
 
-                                      <p className="font-bold text-red-400 mb-2">
-                                        {cve.cve_id}
-                                      </p>
+    <div
+      key={idx}
+      className="bg-red-950/30 border border-red-500/20 rounded-2xl p-5"
+    >
 
-                                      <p className="text-zinc-300 mb-3">
-                                        {cve.description}
-                                      </p>
+      <div className="flex items-center justify-between mb-4">
 
-                                      <span className="text-sm font-bold bg-red-500/10 text-red-400 px-3 py-1 rounded-full">
-                                        Severity: {cve.severity}
-                                      </span>
+        <h3 className="text-xl font-black text-red-400">
 
-                                    </div>
-                                  );
-                                })}
+          {cve.cve_id}
+
+        </h3>
+
+        <span
+          className={`px-4 py-2 rounded-full text-sm font-bold ${
+            cve.severity === "Critical"
+              ? "bg-red-600 text-white"
+              : cve.severity === "High"
+              ? "bg-orange-500 text-white"
+              : cve.severity === "Medium"
+              ? "bg-yellow-400 text-black"
+              : "bg-green-500 text-black"
+          }`}
+        >
+
+          {cve.severity}
+
+        </span>
+
+      </div>
+
+      <p className="text-zinc-300 leading-relaxed mb-5">
+
+        {cve.description}
+
+      </p>
+
+      <div className="grid grid-cols-2 gap-4">
+
+        <div className="bg-black border border-zinc-800 rounded-xl p-4">
+
+          <p className="text-zinc-500 text-sm mb-1">
+            CVSS Score
+          </p>
+
+          <p className="text-2xl font-black text-white">
+
+            {cve.cvss_score}
+
+          </p>
+
+        </div>
+
+        <div className="bg-black border border-zinc-800 rounded-xl p-4">
+
+          <p className="text-zinc-500 text-sm mb-1">
+            Exploitability
+          </p>
+
+          <p className="text-2xl font-black text-red-400">
+
+            {cve.exploitability}
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  );
+})}
 
                               </div>
                             )}
@@ -1255,13 +1309,19 @@ const exportPDF = () => {
                           SSL Status
                         </p>
 
-                        <p className="text-2xl font-bold text-green-500">
+                        <p
+  className={`text-2xl font-bold ${
+    result?.ssl?.ssl_enabled
+      ? "text-green-500"
+      : "text-red-500"
+  }`}
+>
 
-                          {result?.ssl?.ssl_enabled
-                            ? "Enabled"
-                            : "Disabled"}
+  {result?.ssl?.ssl_enabled
+    ? "Enabled"
+    : "Disabled"}
 
-                        </p>
+</p>
 
                       </div>
 
