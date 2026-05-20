@@ -1,7 +1,6 @@
-import requests
+from app.utils.http_client import safe_get
 from urllib.parse import urlparse
 import logging
-import json
 import os
 
 
@@ -77,30 +76,21 @@ def check_security_headers(url):
 
     try:
 
-        response = requests.get(
+        response = safe_get(
             url,
             timeout=5,
-            allow_redirects=True,
-            headers={
-                "User-Agent": (
-                    "Mozilla/5.0 "
-                    "(Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) "
-                    "Chrome/124.0 Safari/537.36"
-                )
-            }
+            allow_redirects=True
         )
+
+        if not response:
+
+            return {
+                "error": "Unable to access the website"
+            }
 
         headers = response.headers
 
         logging.info(f"Scanning URL: {url}")
-
-        filename = (
-            url.replace("https://", "")
-            .replace("http://", "")
-            .replace("/", "_")
-        )
 
         security_headers = {
 
@@ -170,7 +160,7 @@ def check_security_headers(url):
 
         return report
 
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
 
         logging.error(
             f"Error scanning {url}: {str(e)}"

@@ -1,16 +1,99 @@
 import re
 
 
+PATTERNS = [
+
+    # OpenSSH
+    r"(OpenSSH[_\-\/ ]\d+\.\d+(?:\.\d+)?)",
+
+    # Apache
+    r"(Apache\/\d+\.\d+(?:\.\d+)?)",
+
+    # nginx
+    r"(nginx\/\d+\.\d+(?:\.\d+)?)",
+
+    # PHP
+    r"(PHP\/\d+\.\d+(?:\.\d+)?)",
+
+    # MySQL
+    r"(MySQL\/\d+\.\d+(?:\.\d+)?)",
+
+    # OpenSSL
+    r"(OpenSSL\/\d+\.\d+(?:\.\d+)?)",
+
+    # Exim
+    r"(Exim \d+\.\d+(?:\.\d+)?)",
+
+    # vsFTPd
+    r"(vsFTPd \d+\.\d+(?:\.\d+)?)"
+
+]
+
+
+def normalize_software_name(software):
+
+    software = software.replace("_", " ")
+
+    software = software.strip()
+
+    return software
+
+
 def extract_software_version(banner):
 
     patterns = [
 
-        r"(OpenSSH[_\-\/ ]\d+\.\d+\.\d+)",
-        r"(Apache\/\d+\.\d+\.\d+)",
-        r"(nginx\/\d+\.\d+\.\d+)"
+        # OpenSSH
+        (
+            r"OpenSSH[_\-\/ ](\d+\.\d+(?:\.\d+)?)",
+            "OpenSSH"
+        ),
+
+        # Apache
+        (
+            r"Apache\/(\d+\.\d+(?:\.\d+)?)",
+            "Apache"
+        ),
+
+        # nginx
+        (
+            r"nginx\/(\d+\.\d+(?:\.\d+)?)",
+            "nginx"
+        ),
+
+        # PHP
+        (
+            r"PHP\/(\d+\.\d+(?:\.\d+)?)",
+            "PHP"
+        ),
+
+        # MySQL
+        (
+            r"MySQL\/(\d+\.\d+(?:\.\d+)?)",
+            "MySQL"
+        ),
+
+        # OpenSSL
+        (
+            r"OpenSSL\/(\d+\.\d+(?:\.\d+)?)",
+            "OpenSSL"
+        ),
+
+        # Exim
+        (
+            r"Exim[ ](\d+\.\d+(?:\.\d+)?)",
+            "Exim"
+        ),
+
+        # vsFTPd
+        (
+            r"vsFTPd[ ](\d+\.\d+(?:\.\d+)?)",
+            "vsFTPd"
+        )
+
     ]
 
-    for pattern in patterns:
+    for pattern, software_name in patterns:
 
         match = re.search(
             pattern,
@@ -20,11 +103,8 @@ def extract_software_version(banner):
 
         if match:
 
-            software = match.group(1)
+            version = match.group(1)
 
-            software = software.replace("-", "_")
-            software = software.replace("/", "/")
-
-            return software
+            return f"{software_name}_{version}"
 
     return None

@@ -1,4 +1,127 @@
 import requests
+import re
+
+
+TECH_PATTERNS = {
+
+    "WordPress": {
+        "patterns": [
+            "wp-content",
+            "wp-includes"
+        ],
+        "confidence": 95
+    },
+
+    "React": {
+        "patterns": [
+            "_reactRootContainer",
+            "__REACT_DEVTOOLS_GLOBAL_HOOK__",
+            "react.production.min.js"
+        ],
+        "confidence": 90
+    },
+
+    "Next.js": {
+        "patterns": [
+            "__NEXT_DATA__",
+            "/_next/static/"
+        ],
+        "confidence": 95
+    },
+
+    "Cloudflare": {
+        "patterns": [
+            "cf-ray",
+            "cloudflare"
+        ],
+        "confidence": 90
+    },
+
+    "Vercel": {
+        "patterns": [
+            "x-vercel-id",
+            "vercel"
+        ],
+        "confidence": 85
+    },
+
+    "Shopify": {
+        "patterns": [
+            "cdn.shopify.com",
+            "_shopify_y",
+            "shopify-payment-button"
+        ],
+        "confidence": 90
+    },
+
+    "Bootstrap": {
+        "patterns": [
+            "bootstrap.min.css",
+            "bootstrap.min.js"
+        ],
+        "confidence": 80
+    },
+
+    "jQuery": {
+        "patterns": [
+            "jquery.min.js",
+            "jquery.js"
+        ],
+        "confidence": 80
+    },
+
+    "Vue.js": {
+        "patterns": [
+            "vue.js",
+            "vue.min.js"
+        ],
+        "confidence": 80
+    },
+
+    "Angular": {
+        "patterns": [
+            "ng-version",
+            "angular"
+        ],
+        "confidence": 85
+    },
+
+    "Laravel": {
+        "patterns": [
+            "laravel_session"
+        ],
+        "confidence": 85
+    },
+
+    "Django": {
+        "patterns": [
+            "csrftoken"
+        ],
+        "confidence": 85
+    },
+
+    "Flask": {
+        "patterns": [
+            "flask"
+        ],
+        "confidence": 75
+    },
+
+    "Apache": {
+        "patterns": [
+            "apache"
+        ],
+        "confidence": 85
+    },
+
+    "Nginx": {
+        "patterns": [
+            "nginx"
+        ],
+        "confidence": 85
+    }
+
+}
 
 
 def fingerprint_technology(url):
@@ -9,51 +132,110 @@ def fingerprint_technology(url):
 
         response = requests.get(
             url,
-            timeout=5
+            timeout=5,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 "
+                    "(Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) "
+                    "Chrome/124.0 Safari/537.36"
+                )
+            }
         )
 
-        headers = response.headers
+        headers = str(response.headers).lower()
 
         html = response.text.lower()
 
-        server_header = headers.get("Server", "").lower()
-        powered_by = headers.get("X-Powered-By", "").lower()
-
-        # SERVER DETECTION
-
-        if "nginx" in server_header:
-            detected.append("nginx")
-
-        if "apache" in server_header:
-            detected.append("Apache")
-
-        # FRAMEWORK DETECTION
-
-        if "express" in powered_by:
-            detected.append("Express")
-
-        if "php" in powered_by:
-            detected.append("PHP")
-
-        # WORDPRESS DETECTION
-
-        if "wp-content" in html:
-            detected.append("WordPress")
-
-        # DJANGO DETECTION
-
         cookies = str(response.cookies).lower()
 
-        if "csrftoken" in cookies:
-            detected.append("Django")
+        combined_data = (
+            headers +
+            html +
+            cookies
+        )
 
-        # CLOUDFLARE
+        # PATTERN DETECTION
 
-        if "cloudflare" in server_header:
-            detected.append("Cloudflare")
+        for tech, info in TECH_PATTERNS.items():
+
+            patterns = info["patterns"]
+
+            confidence = info["confidence"]
+
+            for pattern in patterns:
+
+                if pattern.lower() in combined_data:
+
+                    detected.append({
+                        "name": tech,
+                        "confidence": confidence
+                    })
+
+                    break
+
+        # SCRIPT SRC DETECTION
+
+        scripts = re.findall(
+            r'<script[^>]+src=["\'](.*?)["\']',
+            html
+        )
+
+        for script in scripts:
+
+            script = script.lower()
+
+            if "react" in script:
+
+                detected.append({
+                    "name": "React",
+                    "confidence": 80
+                })
+
+            if "vue" in script:
+
+                detected.append({
+                    "name": "Vue.js",
+                    "confidence": 80
+                })
+
+            if "jquery" in script:
+
+                detected.append({
+                    "name": "jQuery",
+                    "confidence": 75
+                })
+
+            if "bootstrap" in script:
+
+                detected.append({
+                    "name": "Bootstrap",
+                    "confidence": 75
+                })
+
+        # REMOVE DUPLICATES
+
+        unique_detected = []
+
+        seen = set()
+
+        for item in detected:
+
+            if item["name"] not in seen:
+
+                unique_detected.append(item)
+
+                seen.add(item["name"])
+
+        # SORT BY CONFIDENCE
+
+        return sorted(
+            unique_detected,
+            key=lambda x: x["confidence"],
+            reverse=True
+        )
 
     except Exception:
 
         return []
-
-    return list(set(detected))

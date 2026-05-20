@@ -8,8 +8,10 @@ import {
   AlertTriangle,
   CheckCircle,
   Trash2,
+  Database,
 } from "lucide-react";
 
+import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -30,6 +32,9 @@ function App() {
     ports: true,
     ssl: true,
     headers: true,
+    directories: true,
+    xss: true,
+    sqli: true,
   });
 
   const toggleSection = (section) => {
@@ -126,6 +131,135 @@ function App() {
   }
 
 };
+const exportJSON = () => {
+
+  if (!result) return;
+
+  const dataStr = JSON.stringify(
+    result,
+    null,
+    2
+  );
+
+  const blob = new Blob(
+    [dataStr],
+    {
+      type: "application/json"
+    }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download = `${result.target}-report.json`;
+
+  link.click();
+
+};
+
+const exportPDF = () => {
+
+  if (!result) return;
+
+  const doc = new jsPDF();
+
+  let y = 20;
+
+  doc.setFontSize(22);
+
+  doc.text(
+    "Vulnerability Scan Report",
+    20,
+    y
+  );
+
+  y += 20;
+
+  doc.setFontSize(14);
+
+  doc.text(
+    `Target: ${result.target}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Risk Level: ${result.headers.summary.overall_risk}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Open Ports: ${result.ports.total_open_ports}`,
+    20,
+    y
+  );
+
+  y += 20;
+
+  doc.setFontSize(18);
+
+  doc.text(
+    "Open Ports",
+    20,
+    y
+  );
+
+  y += 15;
+
+  result.ports.open_ports.forEach((port) => {
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Port ${port.port} (${port.service})`,
+      20,
+      y
+    );
+
+    y += 8;
+
+    doc.text(
+      `Banner: ${port.banner}`,
+      25,
+      y
+    );
+
+    y += 8;
+
+    if (port.cves.length > 0) {
+
+      port.cves.forEach((cve) => {
+
+        doc.text(
+          `${cve.cve_id} - ${cve.severity}`,
+          30,
+          y
+        );
+
+        y += 8;
+
+      });
+
+    }
+
+    y += 10;
+
+  });
+
+  doc.save(
+    `${result.target}-report.pdf`
+  );
+
+};
+
   return (
 
     <div className="min-h-screen bg-black text-white">
@@ -397,6 +531,27 @@ function App() {
   </h2>
 
 </div>
+<div className="flex gap-4 mb-8">
+
+  <button
+    onClick={exportJSON}
+    className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-2xl font-bold transition"
+  >
+
+    Export JSON
+
+  </button>
+
+  <button
+    onClick={exportPDF}
+    className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl font-bold transition"
+  >
+
+    Export PDF
+
+  </button>
+
+</div>
 
                 {/* SUMMARY */}
 
@@ -499,24 +654,59 @@ function App() {
 
   {result?.technologies?.length > 0 ? (
 
-    <div className="flex flex-wrap gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-      {result.technologies.map((tech, index) => (
+    {result.technologies.map((tech, index) => (
 
-        <div
-          key={index}
-          className="bg-blue-500/10 border border-blue-500/20 text-blue-300 px-6 py-4 rounded-2xl text-lg font-bold hover:scale-105 transition"
-        >
+      <div
+        key={index}
+        className="bg-black border border-zinc-800 rounded-3xl p-6 hover:border-blue-500 transition"
+      >
 
-          {tech}
+        <div className="flex items-center justify-between mb-4">
+
+          <div>
+
+            <h3 className="text-2xl font-black text-blue-300">
+
+              {tech.name}
+
+            </h3>
+
+            <p className="text-zinc-500 mt-1">
+              Technology Detection
+            </p>
+
+          </div>
+
+          <div className="bg-blue-500/10 text-blue-300 px-4 py-2 rounded-full font-bold text-sm">
+
+            {tech.confidence}%
+
+          </div>
 
         </div>
 
-      ))}
+        {/* PROGRESS BAR */}
 
-    </div>
+        <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
 
-  ) : (
+          <div
+            className="bg-blue-500 h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${tech.confidence}%`
+            }}
+          />
+
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+
+) : (
 
     <div className="bg-black border border-zinc-800 rounded-2xl p-8 text-center">
 
@@ -609,31 +799,85 @@ function App() {
                               <div className="space-y-4">
 
                                 <h3 className="text-xl font-bold text-red-400">
-                                  Known Vulnerabilities
+                                  Detected CVEs
                                 </h3>
 
                                 {port.cves.map((cve, idx) => {
-                                  return (
-                                    <div
-                                      key={idx}
-                                      className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5"
-                                    >
+  return (
 
-                                      <p className="font-bold text-red-400 mb-2">
-                                        {cve.cve_id}
-                                      </p>
+    <div
+      key={idx}
+      className="bg-red-950/30 border border-red-500/20 rounded-2xl p-5"
+    >
 
-                                      <p className="text-zinc-300 mb-3">
-                                        {cve.description}
-                                      </p>
+      <div className="flex items-center justify-between mb-4">
 
-                                      <span className="text-sm font-bold bg-red-500/10 text-red-400 px-3 py-1 rounded-full">
-                                        Severity: {cve.severity}
-                                      </span>
+        <h3 className="text-xl font-black text-red-400">
 
-                                    </div>
-                                  );
-                                })}
+          {cve.cve_id}
+
+        </h3>
+
+        <span
+          className={`px-4 py-2 rounded-full text-sm font-bold ${
+            cve.severity === "Critical"
+              ? "bg-red-600 text-white"
+              : cve.severity === "High"
+              ? "bg-orange-500 text-white"
+              : cve.severity === "Medium"
+              ? "bg-yellow-400 text-black"
+              : "bg-green-500 text-black"
+          }`}
+        >
+
+          {cve.severity}
+
+        </span>
+
+      </div>
+
+      <p className="text-zinc-300 leading-relaxed mb-5">
+
+        {cve.description}
+
+      </p>
+
+      <div className="grid grid-cols-2 gap-4">
+
+        <div className="bg-black border border-zinc-800 rounded-xl p-4">
+
+          <p className="text-zinc-500 text-sm mb-1">
+            CVSS Score
+          </p>
+
+          <p className="text-2xl font-black text-white">
+
+            {cve.cvss_score}
+
+          </p>
+
+        </div>
+
+        <div className="bg-black border border-zinc-800 rounded-xl p-4">
+
+          <p className="text-zinc-500 text-sm mb-1">
+            Exploitability
+          </p>
+
+          <p className="text-2xl font-black text-red-400">
+
+            {cve.exploitability}
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  );
+})}
 
                               </div>
                             )}
@@ -647,6 +891,392 @@ function App() {
                   )}
 
                 </div>
+
+                {/* DIRECTORY DISCOVERY */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
+
+  <button
+    onClick={() => toggleSection("directories")}
+    className="w-full flex items-center justify-between p-8"
+  >
+
+    <div className="flex items-center gap-4">
+
+      <Search
+        className="text-blue-400"
+        size={34}
+      />
+
+      <h2 className="text-4xl font-black">
+        Directory Discovery
+      </h2>
+
+    </div>
+
+    {openSections.directories ? (
+      <ChevronDown size={30} />
+    ) : (
+      <ChevronRight size={30} />
+    )}
+
+  </button>
+
+  {openSections.directories && (
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
+
+      {result?.directories?.directories?.length > 0 ? (
+
+        result.directories.directories.map(
+          (dir, index) => {
+
+            const statusColor =
+              dir.status_code === 200
+                ? "text-green-400 bg-green-500/10"
+                : dir.status_code === 403
+                ? "text-red-400 bg-red-500/10"
+                : "text-yellow-300 bg-yellow-500/10";
+
+            return (
+
+              <div
+                key={index}
+                className="bg-black border border-zinc-800 rounded-3xl p-6"
+              >
+
+                <div className="flex items-center justify-between mb-5">
+
+                  <h3 className="text-2xl font-black text-white break-all">
+
+                    {dir.path}
+
+                  </h3>
+
+                  <span
+                    className={`px-4 py-2 rounded-full text-sm font-bold ${statusColor}`}
+                  >
+
+                    {dir.status_code}
+
+                  </span>
+
+                </div>
+
+                <p className="text-zinc-500">
+                  Directory discovered during reconnaissance scan
+                </p>
+
+              </div>
+
+            );
+
+          }
+        )
+
+      ) : (
+
+        <div className="bg-black border border-zinc-800 rounded-3xl p-8 col-span-full text-center">
+
+          <p className="text-zinc-500 text-lg">
+            No interesting directories discovered
+          </p>
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
+
+</div>
+
+{/* XSS DETECTION */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
+
+  <button
+    onClick={() => toggleSection("xss")}
+    className="w-full flex items-center justify-between p-8"
+  >
+
+    <div className="flex items-center gap-4">
+
+      <AlertTriangle
+        className="text-red-400"
+        size={34}
+      />
+
+      <h2 className="text-4xl font-black">
+        XSS Detection
+      </h2>
+
+    </div>
+
+    {openSections.xss ? (
+      <ChevronDown size={30} />
+    ) : (
+      <ChevronRight size={30} />
+    )}
+
+  </button>
+
+  {openSections.xss && (
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
+
+      {result?.xss?.vulnerabilities?.length > 0 ? (
+
+        result.xss.vulnerabilities.map(
+          (vuln, index) => (
+
+            <div
+              key={index}
+              className="bg-black border border-red-500/20 rounded-3xl p-6"
+            >
+
+              <div className="flex items-center justify-between mb-5">
+
+                <h3 className="text-2xl font-black text-red-400">
+
+                  Possible XSS
+
+                </h3>
+
+                <span className="bg-red-500/10 text-red-400 px-4 py-2 rounded-full text-sm font-bold">
+
+                  {vuln.risk}
+
+                </span>
+
+              </div>
+
+              <div className="space-y-4">
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Parameter
+                  </p>
+
+                  <p className="text-white font-bold break-all">
+
+                    {vuln.parameter}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Payload
+                  </p>
+
+                  <p className="text-red-300 break-all text-sm">
+
+                    {vuln.payload}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Tested URL
+                  </p>
+
+                  <p className="text-zinc-300 break-all text-sm">
+
+                    {vuln.url}
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          )
+        )
+
+      ) : (
+
+        <div className="bg-black border border-zinc-800 rounded-3xl p-8 col-span-full text-center">
+
+          <CheckCircle
+            size={50}
+            className="mx-auto text-green-500 mb-4"
+          />
+
+          <p className="text-zinc-500 text-lg">
+
+            No reflected XSS vulnerabilities detected
+
+          </p>
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
+
+</div>
+
+{/* SQL INJECTION DETECTION */}
+
+<div className="bg-zinc-950 border border-zinc-800 rounded-3xl">
+
+  <button
+    onClick={() => toggleSection("sqli")}
+    className="w-full flex items-center justify-between p-8"
+  >
+
+    <div className="flex items-center gap-4">
+
+      <Database
+        className="text-orange-400"
+        size={34}
+      />
+
+      <h2 className="text-4xl font-black">
+        SQL Injection Detection
+      </h2>
+
+    </div>
+
+    {openSections.sqli ? (
+      <ChevronDown size={30} />
+    ) : (
+      <ChevronRight size={30} />
+    )}
+
+  </button>
+
+  {openSections.sqli && (
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 pb-8">
+
+      {result?.sqli?.vulnerabilities?.length > 0 ? (
+
+        result.sqli.vulnerabilities.map(
+          (vuln, index) => (
+
+            <div
+              key={index}
+              className="bg-black border border-orange-500/20 rounded-3xl p-6"
+            >
+
+              <div className="flex items-center justify-between mb-5">
+
+                <h3 className="text-2xl font-black text-orange-400">
+
+                  Possible SQL Injection
+
+                </h3>
+
+                <span className="bg-orange-500/10 text-orange-400 px-4 py-2 rounded-full text-sm font-bold">
+
+                  {vuln.risk}
+
+                </span>
+
+              </div>
+
+              <div className="space-y-4">
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Parameter
+                  </p>
+
+                  <p className="text-white font-bold break-all">
+
+                    {vuln.parameter}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Payload
+                  </p>
+
+                  <p className="text-orange-300 break-all text-sm">
+
+                    {vuln.payload}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Tested URL
+                  </p>
+
+                  <p className="text-zinc-300 break-all text-sm">
+
+                    {vuln.url}
+
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 mb-1">
+                    Status Code
+                  </p>
+
+                  <p className="text-white font-bold">
+
+                    {vuln.status_code}
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          )
+        )
+
+      ) : (
+
+        <div className="bg-black border border-zinc-800 rounded-3xl p-8 col-span-full text-center">
+
+          <CheckCircle
+            size={50}
+            className="mx-auto text-green-500 mb-4"
+          />
+
+          <p className="text-zinc-500 text-lg">
+
+            No SQL injection vulnerabilities detected
+
+          </p>
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
+
+</div>
 
                 {/* SSL */}
 
@@ -679,13 +1309,19 @@ function App() {
                           SSL Status
                         </p>
 
-                        <p className="text-2xl font-bold text-green-500">
+                        <p
+  className={`text-2xl font-bold ${
+    result?.ssl?.ssl_enabled
+      ? "text-green-500"
+      : "text-red-500"
+  }`}
+>
 
-                          {result?.ssl?.ssl_enabled
-                            ? "Enabled"
-                            : "Disabled"}
+  {result?.ssl?.ssl_enabled
+    ? "Enabled"
+    : "Disabled"}
 
-                        </p>
+</p>
 
                       </div>
 
