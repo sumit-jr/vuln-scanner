@@ -7,6 +7,7 @@ from app.scanner.port_scanner import scan_ports
 from urllib.parse import urlparse
 from app.scanner.tech_fingerprint import fingerprint_technology
 from app.scanner.directory_bruteforce import scan_directories
+from app.scanner.xss_scanner import scan_xss
 import os
 import json
 
@@ -50,7 +51,9 @@ def scan(request: ScanRequest):
 
         "ports": ports_result,
 
-        "directories": scan_directories(target)
+        "directories": scan_directories(target),
+
+        "xss": scan_xss(target)
 
     }
 
