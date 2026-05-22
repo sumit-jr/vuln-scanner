@@ -51,7 +51,7 @@ function App() {
     try {
 
       const response = await axios.get(
-        "http://127.0.0.1:8000/reports"
+        "http://localhost:8000/reports"
       );
 
       setHistory(response.data);
@@ -79,7 +79,7 @@ function App() {
     try {
 
       const response = await axios.post(
-        "http://127.0.0.1:8000/scan",
+        "http://localhost:8000/scan",
         {
           url: url,
         }
@@ -104,7 +104,7 @@ function App() {
   try {
 
     await axios.delete(
-      `http://127.0.0.1:8000/reports/${fileName}`
+      `http://localhost:8000/reports/${fileName}`
     );
 
     const updatedHistory = history.filter(
@@ -383,6 +383,12 @@ const exportPDF = () => {
               {domain}
 
             </p>
+
+            <p className="text-zinc-500 mt-2 text-sm">
+
+    {item.report?.timestamp || "Unknown Time"}
+
+  </p>
 
           </div>
 
