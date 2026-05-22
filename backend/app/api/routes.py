@@ -9,6 +9,7 @@ from app.scanner.tech_fingerprint import fingerprint_technology
 from app.scanner.directory_bruteforce import scan_directories
 from app.scanner.xss_scanner import scan_xss
 from app.scanner.sqli_scanner import scan_sqli
+from datetime import datetime
 import os
 import json
 
@@ -44,6 +45,9 @@ def scan(request: ScanRequest):
 
         "target": host,
 
+        "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+
+
         "technologies": fingerprint_technology(target),
 
         "headers": headers_result,
@@ -67,10 +71,16 @@ def scan(request: ScanRequest):
 @router.get("/reports")
 def get_reports():
 
+    reports_dir = "reports"
+
+    # Create reports folder if it doesn't exist
+    if not os.path.exists(reports_dir):
+        os.makedirs(reports_dir)
+
     reports = []
 
     files = sorted(
-        os.listdir("reports"),
+        os.listdir(reports_dir),
         reverse=True
     )
 
@@ -78,7 +88,7 @@ def get_reports():
 
         if file_name.startswith("scan_") and file_name.endswith(".json"):
 
-            with open(f"reports/{file_name}", "r") as file:
+            with open(f"{reports_dir}/{file_name}", "r") as file:
 
                 report_data = json.load(file)
 
