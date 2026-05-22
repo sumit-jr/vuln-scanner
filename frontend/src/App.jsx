@@ -14,6 +14,7 @@ import {
 import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
 
@@ -51,7 +52,7 @@ function App() {
     try {
 
       const response = await axios.get(
-        "http://localhost:8000/reports"
+        `${API_URL}/reports`
       );
 
       setHistory(response.data);
@@ -79,7 +80,7 @@ function App() {
     try {
 
       const response = await axios.post(
-        "http://localhost:8000/scan",
+       `${API_URL}/scan`,
         {
           url: url,
         }
@@ -104,7 +105,7 @@ function App() {
   try {
 
     await axios.delete(
-      `http://localhost:8000/reports/${fileName}`
+      `${API_URL}/reports/${fileName}`
     );
 
     const updatedHistory = history.filter(
